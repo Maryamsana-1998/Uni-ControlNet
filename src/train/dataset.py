@@ -22,10 +22,10 @@ class UniDataset(Dataset):
                  drop_each_cond_prob):
         
         file_ids, self.annos = read_anno(anno_path)
-        self.image_paths = [os.path.join(image_dir, file_id + '.jpg') for file_id in file_ids]
+        self.image_paths = [os.path.join(image_dir, file_id + '.png') for file_id in file_ids]
         self.local_paths = {}
         for local_type in local_type_list:
-            self.local_paths[local_type] = [os.path.join(condition_root, local_type, file_id + '.jpg') for file_id in file_ids]
+            self.local_paths[local_type] = [os.path.join(condition_root, local_type, file_id + '.png') for file_id in file_ids]
         self.global_paths = {}
         for global_type in global_type_list:
             self.global_paths[global_type] = [os.path.join(condition_root, global_type, file_id + '.npy') for file_id in file_ids]
@@ -40,7 +40,10 @@ class UniDataset(Dataset):
     
     def __getitem__(self, index):
         image = cv2.imread(self.image_paths[index])
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        try:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        except:
+            print(self.image_paths[index])
         image = cv2.resize(image, (self.resolution, self.resolution))
         image = (image.astype(np.float32) / 127.5) - 1.0
 
@@ -55,7 +58,10 @@ class UniDataset(Dataset):
         local_conditions = []
         for local_file in local_files:
             condition = cv2.imread(local_file)
-            condition = cv2.cvtColor(condition, cv2.COLOR_BGR2RGB)
+            try:    
+                condition = cv2.cvtColor(condition, cv2.COLOR_BGR2RGB)
+            except:
+                print(local_file)
             condition = cv2.resize(condition, (self.resolution, self.resolution))
             condition = condition.astype(np.float32) / 255.0
             local_conditions.append(condition)

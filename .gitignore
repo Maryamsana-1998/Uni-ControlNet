@@ -1,0 +1,7 @@
+annotator/ckpts/*
+ckpt/*
+*.pyc
+*.ipynb_checkpoints
+data/*
+data/conditions2/*
+log_local/*

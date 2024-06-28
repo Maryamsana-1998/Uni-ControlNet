@@ -84,10 +84,10 @@ data:
     anno_path: ./data/anno.txt
     image_dir: ./data/images
     condition_root: ./data/conditions
-    local_type_list: [canny, mlsd, hed, sketch, openpose, midas, seg]
+    local_type_list: [canny,seg,openpose,hed,midas,mlsd,sketch]
     global_type_list: []
     resolution: 512
     drop_txt_prob: 0.5
     keep_all_cond_prob: 0.1
     drop_all_cond_prob: 0.1
-    drop_each_cond_prob: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    drop_each_cond_prob: [0.5,0.5,0.5,0.5,0.5,0.5,0.5]

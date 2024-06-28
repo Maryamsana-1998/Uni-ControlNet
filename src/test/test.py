@@ -65,7 +65,7 @@ def process(canny_image, mlsd_image, hed_image, sketch_image, openpose_image, mi
     else:
         anchor_image = np.zeros((image_resolution, image_resolution, 3)).astype(np.uint8)
     H, W, C = resize_image(HWC3(anchor_image), image_resolution).shape
-
+    print('in process')
     with torch.no_grad():
         if canny_image is not None:
             canny_image = cv2.resize(canny_image, (W, H))
@@ -202,7 +202,8 @@ with block:
         cond_gallery = gr.Gallery(label='Output', show_label=False, elem_id="gallery").style(grid=4, height='auto')
     
     ips = [canny_image, mlsd_image, hed_image, sketch_image, openpose_image, midas_image, seg_image, content_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, strength, scale, seed, eta, low_threshold, high_threshold, value_threshold, distance_threshold, alpha, global_strength]
+    print(ips)
     run_button.click(fn=process, inputs=ips, outputs=[image_gallery, cond_gallery])
 
 
-block.launch(server_name='0.0.0.0')
+block.launch(server_name='0.0.0.0',share=True)
