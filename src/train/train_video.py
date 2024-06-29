@@ -25,12 +25,13 @@ parser.add_argument('--config-path', type=str, default='./configs/local_v15.yaml
 parser.add_argument('--learning-rate', type=float, default=1e-5)
 parser.add_argument('---batch-size', type=int, default=4)
 parser.add_argument('---training-steps', type=int, default=1e5)
-parser.add_argument('---resume-path', type=str, default='./ckpt/init_local.ckpt')
+parser.add_argument('---resume-path', type=str)
 parser.add_argument('---logdir', type=str, default='./log_local/')
 parser.add_argument('---log-freq', type=int, default=500)
 parser.add_argument('---sd-locked', type=bool, default=True)
 parser.add_argument('---num-workers', type=int, default=4)
 parser.add_argument('---gpus', type=int, default=6)
+parser.add_argument('--ckpt', type=str, default='./checkpoints/')
 args = parser.parse_args()
 
 
@@ -40,7 +41,6 @@ def main():
     learning_rate = args.learning_rate
     batch_size = args.batch_size
     training_steps = args.training_steps
-    resume_path = args.resume_path
     default_logdir = args.logdir
     logger_freq = args.log_freq
     sd_locked = args.sd_locked
@@ -49,15 +49,15 @@ def main():
 
     config = OmegaConf.load(config_path)
     model = instantiate_from_config(config['model'])
-
-    model.load_state_dict(load_state_dict(resume_path, location='cpu'))
+    if args.resume_path:
+        model.load_state_dict(load_state_dict(args.resume_path, location='cpu'))
     model.learning_rate = learning_rate
     model.sd_locked = sd_locked
 
     dataset = instantiate_from_config(config['data'])
     dataloader = DataLoader(dataset, num_workers=num_workers, batch_size=batch_size, pin_memory=True, shuffle=True)
     # cv2.setLogLevel(cv2.LOG_LEVEL_VERBOSE)
-    checkpoint_dir = 'checkpoints/'
+    checkpoint_dir = args.ckpt
     
     # Ensure the checkpoint directory exists
     if not os.path.exists(checkpoint_dir):

@@ -15,14 +15,14 @@ model:
     monitor: val/loss_simple_ema
     scale_factor: 0.18215
     use_ema: False
-    mode: local
+    mode: uni
 
     local_control_config:
       target: models.local_adapter.LocalAdapter
       params:
         in_channels: 4
         model_channels: 320
-        local_channels: 21
+        local_channels: 3
         inject_channels: [192, 256, 384, 512]
         inject_layers: [1, 4, 7, 10]
         num_res_blocks: 2
@@ -34,6 +34,12 @@ model:
         transformer_depth: 1
         context_dim: 768
         legacy: False
+    
+    global_control_config:
+      target: models.global_adapter.GlobalAdapter
+      params:
+        in_dim: 768
+        channel_mult: [2, 4]
 
     unet_config:
       target: models.local_adapter.LocalControlUNetModel
@@ -77,17 +83,3 @@ model:
 
     cond_stage_config:
       target: ldm.modules.encoders.modules.FrozenCLIPEmbedder
-
-data:
-  target: src.train.dataset.UniDataset
-  params:
-    anno_path: ./data/output.txt
-    image_dir: ./data/images
-    condition_root: ./data/conditions
-    local_type_list: [canny,seg,openpose,hed,midas,mlsd,sketch]
-    global_type_list: []
-    resolution: 512
-    drop_txt_prob: 0.5
-    keep_all_cond_prob: 0.1
-    drop_all_cond_prob: 0.1
-    drop_each_cond_prob: [0.5,0.5,0.5,0.5,0.5,0.5,0.5]
