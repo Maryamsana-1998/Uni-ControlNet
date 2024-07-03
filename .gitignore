@@ -5,3 +5,5 @@ ckpt/*
 data/*
 data/conditions2/*
 log_local/*
+checkpoints/*
+slurm_logs/*

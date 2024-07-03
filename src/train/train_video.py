@@ -14,11 +14,23 @@ from ldm.util import instantiate_from_config
 from models.util import load_state_dict
 from models.logger import ImageLogger
 import logging
+import torch 
+import numpy as np
+import random
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Function to set seeds
+def set_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # if you are using multi-GPU.
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 parser = argparse.ArgumentParser(description='Uni-ControlNet Training')
 parser.add_argument('--config-path', type=str, default='./configs/local_v15.yaml')
@@ -30,13 +42,13 @@ parser.add_argument('---logdir', type=str, default='./log_local/')
 parser.add_argument('---log-freq', type=int, default=500)
 parser.add_argument('---sd-locked', type=bool, default=True)
 parser.add_argument('---num-workers', type=int, default=4)
-parser.add_argument('---gpus', type=int, default=6)
+parser.add_argument('---gpus', type=int, default=1)
 parser.add_argument('--ckpt', type=str, default='./checkpoints/')
 args = parser.parse_args()
 
 
 def main():
-
+    set_seed(42)
     config_path = args.config_path
     learning_rate = args.learning_rate
     batch_size = args.batch_size
@@ -66,19 +78,18 @@ def main():
 
     logger = ImageLogger(batch_frequency=logger_freq)
     checkpoint_callback = ModelCheckpoint(
-        monitor='train/loss',
-        save_top_k=1,
-        mode='min',
-        every_n_train_steps=logger_freq,
+        monitor='train/loss_epoch',
         dirpath=checkpoint_dir,
-        filename='best-checkpoint',
+        filename='best-model',
+        save_top_k=2,
+        mode='min',
     )
         
     trainer = pl.Trainer(
         gpus=gpus,
-        callbacks=[logger, checkpoint_callback], 
-        default_root_dir=default_logdir,
+        callbacks=[checkpoint_callback], 
         max_steps=training_steps,
+        default_root_dir=checkpoint_dir
     )
     print(f"Checkpoints will be saved to: {checkpoint_callback.dirpath}")
 
