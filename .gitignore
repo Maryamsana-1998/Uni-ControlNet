@@ -9,3 +9,4 @@ checkpoints/*
 slurm_logs/*
 global_logs/*
 local_logs/
+experiments/*
