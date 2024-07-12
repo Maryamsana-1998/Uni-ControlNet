@@ -1,0 +1,6 @@
+outs:
+- md5: 8cadc6aa665fadf2df275b6c8e779606.dir
+  size: 36840994764
+  nfiles: 8
+  hash: md5
+  path: video_local

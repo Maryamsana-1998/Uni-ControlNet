@@ -2,10 +2,10 @@ annotator/ckpts/*
 ckpt/*
 *.pyc
 *.ipynb_checkpoints
-data/*
+# data/*
 data/conditions2/*
 log_local/*
-checkpoints/*
+# checkpoints/*
 slurm_logs/*
 global_logs/*
 local_logs/
