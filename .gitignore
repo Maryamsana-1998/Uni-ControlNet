@@ -7,6 +7,6 @@ data/conditions2/*
 log_local/*
 checkpoints/*
 slurm_logs/*
-global_logs/*
-local_logs/
 experiments/*
+.dvc/*
+logs/*
