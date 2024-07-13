@@ -3,10 +3,15 @@ ckpt/*
 *.pyc
 *.ipynb_checkpoints
 data/*
+# data/*
 data/conditions2/*
 log_local/*
-checkpoints/*
+# checkpoints/*
 slurm_logs/*
 global_logs/*
 local_logs/
 experiments/*
+checkpoints/global_all
+checkpoints/local_all
+checkpoints/video_*
+checkpoints/all_conditions
