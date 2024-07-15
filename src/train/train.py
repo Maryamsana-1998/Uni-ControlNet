@@ -63,6 +63,8 @@ def main():
     logger = ImageLogger(batch_frequency=logger_freq)
     checkpoint_callback = ModelCheckpoint(
         every_n_train_steps=logger_freq,
+        dirpath='checkpoints/laion/',
+        filename='local-best-checkpoint',
     )
 
     trainer = pl.Trainer(

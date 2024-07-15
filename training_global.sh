@@ -5,6 +5,6 @@
 #SBATCH --mem-per-gpu=29G
 #SBATCH -p batch_grad
 #SBATCH -w ariel-v8
-#SBATCH -o slurm_logs/slurm-%A_%x.out
+#SBATCH -o slurm_logs/slurm-laion-%A_%x.out
 
-python src/train/train.py --config-path ./configs/laicon/global_v15.yaml  ---resume-path ckpt/laicon/init_global.ckpt ---max-epochs 200000 ---gpus 8 ---logdir global_logs/
+python src/train/train.py --config-path ./configs/laicon/global_v15.yaml  ---resume-path ckpt/laicon/init_global.ckpt ---max-epochs 3  ---gpus 8 ---logdir global_logs/

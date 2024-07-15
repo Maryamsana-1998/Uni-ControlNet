@@ -70,7 +70,7 @@ data:
   target: src.train.dataset.UniDataset
   params:
     anno_path: /local_datasets/laion/laion-coco-600k/anno.txt
-    image_dir: /local_datasets/laion/laion-coco-600k/images
+    image_dir: /local_datasets/laion/laion-coco-600k/
     condition_root: /local_datasets/laion/laion-coco-600k/conditions
     local_type_list: []
     global_type_list: [content]
