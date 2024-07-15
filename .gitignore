@@ -1,5 +1,5 @@
 annotator/ckpts/*
-ckpt/*
+# ckpt/*
 *.pyc
 *.ipynb_checkpoints
 data/*
