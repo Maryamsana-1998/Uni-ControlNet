@@ -53,6 +53,7 @@ def process_images_in_folder(input_folder, output_folder):
             save_embedding(image_path, output_folder)
 
 # Example usage
-input_folder = 'data/vimeo_images'
-output_folder = 'data/vimeo_conditions/content'
+#data in v-8
+input_folder = '/local_datasets/laion/laion-coco-600k/images'
+output_folder = '/local_datasets/laion/laion-coco-600k/conditions/content'
 process_images_in_folder(input_folder, output_folder)
