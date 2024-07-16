@@ -60,7 +60,7 @@ def main():
         persistent_workers=True,
     )
 
-    logger = ImageLogger(batch_frequency=logger_freq)
+    logger = ImageLogger(batch_frequency=logger_freq, num_local_conditions=1)
     checkpoint_callback = ModelCheckpoint(
         every_n_train_steps=logger_freq,
         dirpath='checkpoints/laion/',
