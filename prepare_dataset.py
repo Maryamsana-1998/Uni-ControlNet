@@ -4,21 +4,20 @@ import glob
 import os
 from PIL import Image
 from tqdm import tqdm
+import torch
 
-# Path to the images and annotation file
-image_paths = glob.glob('/data/maryam.sana/Uni-ControlNet/data/vimeo_data/vimeo_images/*.png')
-anno_file = '/data/maryam.sana/Uni-ControlNet/data/vimeo_data/vimeo_data.txt'
-
-# Load model and processor
-model = LlavaForConditionalGeneration.from_pretrained("llava-hf/llava-1.5-7b-hf")
+image_paths = glob.glob('/local_datasets/vimeo/vimeo_images/*.png')
+anno_file = '/local_datasets/vimeo/vimeo_data.txt'
+model = LlavaForConditionalGeneration.from_pretrained("llava-hf/llava-1.5-7b-hf", torch_dtype=torch.float16).to('cuda')
 processor = AutoProcessor.from_pretrained("llava-hf/llava-1.5-7b-hf")
 
 def get_caption(frame):
     prompt = "<image>\nUSER: Give a detailed visual description of this image ?\nASSISTANT:"
-    inputs = processor(text=prompt, images=frame, return_tensors="pt")
+    inputs = processor(text=prompt, images=frame, return_tensors="pt").to('cuda', dtype=torch.float16)
     generate_ids = model.generate(**inputs, max_length=200)
     caption_llava = processor.batch_decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
     return caption_llava.split('ASSISTANT:')[1].strip()
+
 
 # Read existing annotations
 existing_annotations = set()
