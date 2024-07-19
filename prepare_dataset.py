@@ -6,8 +6,8 @@ from PIL import Image
 from tqdm import tqdm
 
 # Path to the images and annotation file
-image_paths = glob.glob('/data/maryam.sana/Uni-ControlNet/data/vimeo_images/*.png')
-anno_file = '/data/maryam.sana/Uni-ControlNet/data/vimeo_data.txt'
+image_paths = glob.glob('/data/maryam.sana/Uni-ControlNet/data/vimeo_data/vimeo_images/*.png')
+anno_file = '/data/maryam.sana/Uni-ControlNet/data/vimeo_data/vimeo_data.txt'
 
 # Load model and processor
 model = LlavaForConditionalGeneration.from_pretrained("llava-hf/llava-1.5-7b-hf")

@@ -8,9 +8,10 @@ sys.path.append("..")
 from segment_anything import sam_model_registry, SamAutomaticMaskGenerator
 
 def generate_mask_image(image_path, sam_checkpoint, model_type, device="cuda"):
-    # Load image
+    # Load and resize image
     image = cv2.imread(image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = cv2.resize(image, (512, 512))  # Resize to 512x512
     
     # Load model
     sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
@@ -54,8 +55,8 @@ def process_images(input_dir, output_dir, sam_checkpoint, model_type):
         print(f"Saved mask image for {img_filename} to {output_path}")
 
 # Example usage
-input_dir = '/data/maryam.sana/Uni-ControlNet/data/vimeo_images'
-output_dir = '/data/maryam.sana/Uni-ControlNet/data/vimeo_conditions/segSAM'
+input_dir = '/data/maryam.sana/Uni-ControlNet/data/vimeo_data/vimeo_images'
+output_dir = '/data/maryam.sana/Uni-ControlNet/data/vimeo_data/vimeo_conditions/segSAM'
 sam_checkpoint = "/data/maryam.sana/NVC_image_captioning/checkpoints/sam_vit_h_4b8939.pth"
 model_type = "vit_h"
 
