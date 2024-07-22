@@ -9,5 +9,5 @@
 #Your command to run the Python script
 #pip install torch torchvision compressai
 #source activate compressails
-python src/train/train.py --config-path ./configs/vimeo/local_v15.yaml ---resume-path ckpt/init_local.ckpt --ckpt ./checkpoints/vimeo/local/ ---gpus 6 ---logdir logs/vimeo/local/
+python src/train/train.py --config-path ./configs/vimeo_img2img/local_v15.yaml ---resume-path ckpt/vimeo_img2img/init_local.ckpt --ckpt ./checkpoints/vimeo_img2img/local/ ---gpus 6 ---logdir logs/vimeo_img2img/local/
 
