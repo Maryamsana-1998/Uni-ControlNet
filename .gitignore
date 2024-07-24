@@ -5,11 +5,9 @@ ckpt/*
 data/*
 # data/*
 data/conditions2/*
-log_local/*
+logs/*
 # checkpoints/*
 slurm_logs/*
-global_logs/*
-local_logs/
 experiments/*
 checkpoints/global_all
 checkpoints/local_all
