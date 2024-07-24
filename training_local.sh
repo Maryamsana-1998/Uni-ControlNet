@@ -7,5 +7,5 @@
 #SBATCH -w ariel-v8
 #SBATCH -o slurm_logs/slurm-laion-%A_%x.out
 
-python src/train/train.py --config-path ./configs/laicon/local_v15.yaml  ---resume-path ckpt/laicon/init_local.ckpt ---max-epochs 3 ---gpus 6 ---logdir local_logs/
+python src/train/train.py --config-path ./configs/laion/local_v15.yaml  ---resume-path ckpt/laion/init_local.ckpt ---max-epochs 3 ---gpus 6 ---logdir local_logs/
 

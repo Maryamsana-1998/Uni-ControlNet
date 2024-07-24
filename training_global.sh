@@ -7,4 +7,4 @@
 #SBATCH -w ariel-k2
 #SBATCH -o slurm_logs/slurm-laion-%A_%x.out
 
-python src/train/train2.py --config-path ./configs/laicon/global_v15.yaml  ---resume-path ckpt/laicon/init_global.ckpt ---max-epochs 3  ---gpus 6 ---logdir global_logs/
+python src/train/train2.py --config-path ./configs/laion/global_v15.yaml  ---resume-path ckpt/laion/init_global.ckpt ---max-epochs 3  ---gpus 6 ---logdir global_logs/
