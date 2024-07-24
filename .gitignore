@@ -3,11 +3,9 @@ annotator/ckpts/*
 *.pyc
 *.ipynb_checkpoints
 data/*
-data/conditions2/*
 log_local/*
 slurm_logs/*
 experiments/*
 .dvc/*
 logs/*
-local_logs/
-global_logs/
+tests/data
