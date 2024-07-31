@@ -1,0 +1,6 @@
+outs:
+- md5: 09cfd60530a39284fc9dab8b4fc0569b.dir
+  size: 32458388552
+  nfiles: 4
+  hash: md5
+  path: vimeo_img2img
