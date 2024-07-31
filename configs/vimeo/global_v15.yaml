@@ -69,7 +69,7 @@ model:
 data:
   target: src.train.dataset.UniDataset
   params:
-    anno_path: /local_datasets/vimeo/vimeo_data.txt
+    anno_path: /local_datasets/vimeo/annotations.txt
     image_dir: /local_datasets/vimeo/images
     condition_root: /local_datasets/vimeo/conditions
     local_type_list: []
