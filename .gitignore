@@ -8,7 +8,6 @@ data/conditions2/*
 logs/*
 # checkpoints/*
 slurm_logs/*
-experiments/*
 checkpoints/global_all
 checkpoints/local_all
 checkpoints/video_*
