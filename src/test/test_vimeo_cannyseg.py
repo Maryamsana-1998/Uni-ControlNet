@@ -15,6 +15,7 @@ from annotator.util import resize_image, HWC3
 
 from annotator.canny import CannyDetector
 from annotator.uniformer import UniformerDetector
+from annotator.content import ContentDetector
 from models.util import create_model, load_state_dict
 from models.ddim_hacked import DDIMSampler
 
@@ -25,6 +26,7 @@ model = model.cuda()
 ddim_sampler = DDIMSampler(model)
 apply_canny = CannyDetector()
 apply_seg = UniformerDetector()
+apply_content = ContentDetector()
 
 def process(
     canny_image,
@@ -41,6 +43,7 @@ def process(
     eta,
     global_strength,
     low_threshold=100, high_threshold=200, 
+    content_image = None
 ):
 
     seed_everything(seed)
@@ -58,8 +61,11 @@ def process(
         seg_detected_map, _ = apply_seg(HWC3(seg_image))
         seg_detected_map = HWC3(seg_detected_map)
 
-        content_emb = np.zeros((768))
-
+        if content_image is not None:
+            content_emb = apply_content(content_image)
+        else:
+            content_emb = np.zeros((768))
+            
         detected_maps = np.concatenate([canny_detected_map,seg_detected_map], axis=2)
 
         local_control = torch.from_numpy(detected_maps.copy()).float().cuda() / 255.0
@@ -128,9 +134,9 @@ def save_image(image: np.ndarray, name: str):
 
 
 def main():
-    original_image = cv2.imread("data/00001_0008_im2.png")
+    original_image = cv2.imread("data/00002_0062_im2.png")
     original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
-    prompt = "The image features a man wearing a hat, standing in front of a tree. He appears to be looking at the camera, possibly posing for a picture. The man is wearing a blue shirt, and there is a tie visible on him. The scene is set in a garden, with the tree providing a natural backdrop."
+    prompt = "The image depicts a classroom setting with a group of children sitting at desks. There are at least 12 children in the room, engaged in various activities. Some of the children are wearing ties, indicating a formal or semi-formal setting. The classroom is well-equipped with multiple chairs, some of which are placed near the desks. There are also several bottles scattered around the room, possibly containing drinks for the children. A handbag can be seen placed on one of the desks, and a book is located near the center of the room. The children appear to be focused on their tasks, and the overall atmosphere of the classroom is one of learning and collaboration."
     a_prompt = "best quality, extremely detailed"
     n_prompt = "longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality"
     num_samples = 1
@@ -141,7 +147,7 @@ def main():
     seed = 42
     eta = 0.0
     global_strength = 1
-
+    
     args = [
         original_image,
         original_image,
@@ -155,11 +161,14 @@ def main():
         scale,
         seed,
         eta,
-        global_strength,
+        global_strength
     ]
-    results, original_image_processed = process(*args)
-    save_image(results[0], "data/result_cs.jpg")
-    save_image(original_image_processed[0], "data/original_cs.jpg")
+    
+    # Named arguments should be passed separately
+    results, original_image_processed = process(*args, low_threshold=100, high_threshold=200, content_image=original_image)
+
+    save_image(results[0], "data/result_csc_62.jpg")
+    # save_image(original_image_processed[0], "data/original_cs.jpg")
     print("Done!")
 
 

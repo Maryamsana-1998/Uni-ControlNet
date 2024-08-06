@@ -6,13 +6,15 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 # Transformation to resize and convert images to tensor
 psnr_transform = transforms.Compose([
     transforms.Resize((512, 512)),  # Resize to the input size expected by the model
     transforms.ToTensor(),
     lambda x: x * 255
 ])
+
+def resize_image(image, size=(512, 512)):
+    return image.resize(size, Image.LANCZOS)
 
 def psnr(a: torch.Tensor, b: torch.Tensor, max_val: int = 255) -> float:
     return 20 * math.log10(max_val) - 10 * torch.log10((a - b).pow(2).mean())
