@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the directory containing the images
-image_folder="data/00096_0576/cannyseg/mi/residues/"
+image_folder="data/00096_0576/keyframe/hi/residues/"
 
 # Loop through all PNG images in the folder
 for image_path in "$image_folder"/*.png; do
@@ -9,7 +9,7 @@ for image_path in "$image_folder"/*.png; do
   compressed_path="${image_path}.tfci"
 
   # Compress the image
-  python3 tcfi.py compress hific-lo "$image_path" "$compressed_path"
+  python3 tcfi.py compress b2018-leaky_relu-128-1 "$image_path" "$compressed_path"
 
   # Decompress the image (output will be saved back as .png)
   python3 tcfi.py decompress "$compressed_path" 
