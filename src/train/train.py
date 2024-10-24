@@ -27,6 +27,7 @@ parser.add_argument("---log-freq", type=int, default=500)
 parser.add_argument("---sd-locked", type=bool, default=True)
 parser.add_argument("---num-workers", type=int, default=4)
 parser.add_argument("---gpus", type=int, default=-1)
+parser.add_argument("--checkpoint-dirpath", type=str, default='checkpoints/vimeo_all/')  
 args = parser.parse_args()
 
 
@@ -63,7 +64,7 @@ def main():
     logger = ImageLogger(batch_frequency=logger_freq, num_local_conditions=1)
     checkpoint_callback = ModelCheckpoint(
         every_n_train_steps=logger_freq,
-        dirpath='checkpoints/laion/',
+        dirpath= args.checkpoint_dirpath,
         filename='local-best-checkpoint',
     )
 
