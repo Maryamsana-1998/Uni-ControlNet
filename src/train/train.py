@@ -19,7 +19,7 @@ torch.multiprocessing.set_sharing_strategy("file_system")
 parser = argparse.ArgumentParser(description="Uni-ControlNet Training")
 parser.add_argument("--config-path", type=str, default="./configs/local_v15.yaml")
 parser.add_argument("--learning-rate", type=float, default=1e-5)
-parser.add_argument("---batch-size", type=int, default=1)
+parser.add_argument("---batch-size", type=int, default=4)
 parser.add_argument("---max-epochs", type=int, default=2)
 parser.add_argument("---resume-path", type=str, default="./ckpt/init_local.ckpt")
 parser.add_argument("---logdir", type=str, default="./log_local/")
@@ -54,7 +54,7 @@ def main():
     dataset = instantiate_from_config(config["data"])
     dataloader = DataLoader(
         dataset,
-        num_workers=num_workers,
+        num_workers=1,
         batch_size=batch_size,
         pin_memory=True,
         shuffle=True,

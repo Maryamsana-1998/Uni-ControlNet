@@ -79,15 +79,15 @@ model:
       target: ldm.modules.encoders.modules.FrozenCLIPEmbedder
 
 data:
-  target: src.train.dataset.UniDataset
+  target: src.train.video_dataset.UniVideoDataset
   params:
-    anno_path: /data2/local_datasets/vimeo_all/annotations.txt
-    image_dir: /data2/local_datasets/vimeo_all/images
-    condition_root: /data2/local_datasets/vimeo_all/condition
-    local_type_list: [optical_flow,   quality_8 ]
-    global_type_list: []
+    root: "/data/maryam.sana/datazips/spring/"
+    frame_dir: "frame_left"
+    optical_flow_dir: "flow_images"
+    encoded_frame_dir: "encoded_left"
     resolution: 512
-    drop_txt_prob: 0.5
-    keep_all_cond_prob: 0.1
+    global_type_list: []
+    drop_txt_prob: 0.1
+    keep_all_cond_prob: 0.8
     drop_all_cond_prob: 0.1
-    drop_each_cond_prob: [0.5,0.5,0.5,0.5,0.5,0.5,0.5]
+    drop_each_cond_prob: [0.5, 0.5]
