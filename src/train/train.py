@@ -25,11 +25,32 @@ parser.add_argument("---resume-path", type=str, default="./ckpt/init_local.ckpt"
 parser.add_argument("---logdir", type=str, default="./log_local/")
 parser.add_argument("---log-freq", type=int, default=500)
 parser.add_argument("---sd-locked", type=bool, default=True)
-parser.add_argument("---num-workers", type=int, default=4)
+parser.add_argument("---num-workers", type=int, default=16)
 parser.add_argument("---gpus", type=int, default=-1)
 parser.add_argument("--checkpoint-dirpath", type=str, default='checkpoints/vimeo_all/')  
 args = parser.parse_args()
 
+import torch
+
+def custom_collate_fn(batch):
+    # Separate out the parts of the batch that are strings and numpy arrays/tensors
+    # print(batch.shape)
+    txt_batch = [item['txt'] for item in batch]  # Extract 'txt'
+
+    # Extract the image data (jpg) and ensure it has shape [5, 512, 512, 3] without adding a batch dimension
+    jpg_batch = torch.cat([torch.tensor(item['jpg']) for item in batch], dim=0) if len(batch) > 1 else torch.tensor(batch[0]['jpg'])
+
+    # Handle local and global conditions similarly
+    local_conditions_batch = torch.cat([torch.tensor(item['local_conditions']) for item in batch], dim=0) if len(batch) > 1 else torch.tensor(batch[0]['local_conditions'])
+    global_conditions_batch = torch.cat([torch.tensor(item['global_conditions']) for item in batch], dim=0) if len(batch) > 1 else torch.tensor(batch[0]['global_conditions'])
+
+    # Return the combined dictionary
+    return {
+        'jpg': jpg_batch,  # This will have shape [5, 512, 512, 3] for each item
+        'txt': txt_batch,  # Keep as a list of strings
+        'local_conditions': local_conditions_batch,
+        'global_conditions': global_conditions_batch
+    }
 
 def main():
 
@@ -54,7 +75,7 @@ def main():
     dataset = instantiate_from_config(config["data"])
     dataloader = DataLoader(
         dataset,
-        num_workers=1,
+        num_workers=num_workers,
         batch_size=batch_size,
         pin_memory=True,
         shuffle=True,

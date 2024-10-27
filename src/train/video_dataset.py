@@ -1,8 +1,12 @@
 import os
 from pathlib import Path
 import numpy as np
+import random
 from torch.utils.data import Dataset
+import torchvision.transforms as transforms
 import cv2
+from PIL import Image
+
 
 from .util import *
 
@@ -64,45 +68,43 @@ class UniVideoDataset(Dataset):
         self.global_type_list = global_type_list
 
     def _load_samples(self):
-        """Load the samples from the directory structure, grouped into sets of 5 frames, skipping the first frame for each group."""
+        """Load the samples from the directory structure as individual frames and conditions, not grouped."""
         samples = []
         for video_folder in self.root.iterdir():
-            frame_folder = video_folder / self.frame_dir
-            optical_flow_folder = video_folder / self.optical_flow_dir
-            encoded_frame_folder = video_folder / self.encoded_frame_dir
-            
-            # Ensure all directories exist
-            if frame_folder.exists() and optical_flow_folder.exists() and encoded_frame_folder.exists():
-                frame_files = sorted(frame_folder.glob("*.png"))
-                optical_flow_files = sorted(optical_flow_folder.glob("*.png"))
-                encoded_frame_files = sorted(encoded_frame_folder.glob("*.png"))
+            try:
+                frame_folder = video_folder / self.frame_dir
+                optical_flow_folder = video_folder / self.optical_flow_dir
+                encoded_frame_folder = video_folder / self.encoded_frame_dir
 
-                # Ensure we have enough frames and conditions to form groups of 5
-                for i in range(1, len(frame_files) - 4):  # -4 to ensure a group of 5 frames
-                    frame_group = frame_files[i:i + 5]
-                    optical_flow_group = optical_flow_files[i:i + 5]  # 4 optical flows correspond to frames 2-5
-                    encoded_frame_group = encoded_frame_files[i-1:i + 4]  # 4 encoded frames correspond to frames 2-5
-                    
-                    # Only add samples if we have exactly 5 frames and 4 corresponding conditions
-                    if len(frame_group) == 5 and len(optical_flow_group) == 5 and len(encoded_frame_group) == 5:
-                        samples.append((frame_group, optical_flow_group, encoded_frame_group))
+                # Ensure all directories exist
+                if frame_folder.exists() and optical_flow_folder.exists() and encoded_frame_folder.exists():
+                    frame_files = sorted(frame_folder.glob("*.png"))
+                    optical_flow_files = sorted(optical_flow_folder.glob("*.png"))
+                    encoded_frame_files = sorted(encoded_frame_folder.glob("*.png"))
+                    # print(len(optical_flow_files), len(frame_files))
+
+                    # Ensure we have enough frames and corresponding conditions
+                    for i in range(1, len(frame_files)):
+                        frame = frame_files[i]
+                        optical_flow = optical_flow_files[i-1]  # Optical flow corresponds to the previous frame
+                        encoded_frame = encoded_frame_files[i - 1]  # Encoded frame corresponds to the previous frame
+                        # print('missing:',video_folder,i)
+
+                        # Only add samples if all corresponding files exist
+                        if frame and optical_flow and encoded_frame:
+                            samples.append((frame, optical_flow, encoded_frame))
+            except:
+                print(video_folder)
 
         return samples
- 
+
     def load_image(self, frame_path):
         """Load and process a frame (image)."""
-        image = None  # Initialize image as None
-    
-        try:
-            # Load the image
-            image = cv2.imread(frame_path)
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
-            image = cv2.resize(image, (self.resolution, self.resolution))  # Resize to target resolution
-            image = (image.astype(np.float32) / 127.5) - 1.0  # Normalize to [-1, 1] range
-    
-        except Exception as e:
-            print(f"Error processing image {frame_path}: {e}")
-        
+        # print(frame_path)
+        image = cv2.imread(frame_path)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
+        image = cv2.resize(image, (self.resolution, self.resolution))  # Resize to target resolution
+        image = (image.astype(np.float32) / 127.5) - 1.0  # Normalize to [-1, 1] range    
         return image  # Return None if an exception occurred
         
     def load_local_condition(self, optical_flow_path, encoded_frame_path):
@@ -116,14 +118,12 @@ class UniVideoDataset(Dataset):
         
         for local_file in local_files:
             condition = cv2.imread(local_file)
-            try:    
-                # Convert BGR to RGB, resize, and normalize
-                condition = cv2.cvtColor(condition, cv2.COLOR_BGR2RGB)
-                condition = cv2.resize(condition, (self.resolution, self.resolution))
-                condition = condition.astype(np.float32) / 255.0  # Normalize to [0, 1]
-                local_conditions.append(condition)
-            except Exception as e:
-                print(f"Error processing file {local_file}: {e}")
+            condition = cv2.cvtColor(condition, cv2.COLOR_BGR2RGB)
+            condition = cv2.resize(condition, (self.resolution, self.resolution))
+            condition = condition.astype(np.float32) / 255.0  # Normalize to [0, 1]
+            local_conditions.append(condition)
+            # except Exception as e:
+            #     print(f"Error processing file {local_file}: {e}")
     
         # Apply keep and drop logic (presumably user-defined function)
         local_conditions = keep_and_drop(local_conditions, self.keep_all_cond_prob, self.drop_all_cond_prob, self.drop_each_cond_prob)
@@ -139,7 +139,7 @@ class UniVideoDataset(Dataset):
         global_conditions = keep_and_drop(global_conditions, self.keep_all_cond_prob, self.drop_all_cond_prob, self.drop_each_cond_prob)
         if len(global_conditions) != 0:
             global_conditions = np.concatenate(global_conditions)
-        return global_conditions
+        return global_conditions 
     
     def __getitem__(self, index):
         """
@@ -148,40 +148,35 @@ class UniVideoDataset(Dataset):
 
         Returns:
             dict: {
-                "image": List of `PIL.Image.Image` or transformed `PIL.Image.Image` (group of 5),
-                "local_condition": List of [optical_flow, encoded_frame] for frames 2-5
+                "jpg": np.ndarray of shape [H, W, C],
+                "txt": Single text annotation or empty string,
+                "local_conditions": np.ndarray for the optical flow and encoded frame conditions,
+                "global_conditions": np.ndarray for the global conditions for this frame
             }
         """
-        # Unpack the sample tuple
-        frame_group, optical_flow_group, encoded_frame_group = self.samples[index]
+        # Unpack the sample tuple - each entry corresponds to one frame and its conditions
+        frame_path, opt_flow, enc_frame = self.samples[index]
 
-        # Initialize an empty list to store the dictionaries
-        output_dicts = []
+        # Load the image for the current frame
+        jpg = self.load_image(frame_path)  # Shape [H, W, C]
 
-        # Iterate through frames and conditions (starting from frame 2 as per your logic)
-        for i, (frame_path, opt_flow, enc_frame) in enumerate(zip(frame_group, optical_flow_group, encoded_frame_group)):
-            # Load the image for the current frame
-            image = self.load_image(frame_path)
+        # Load the local conditions (optical flow and encoded frame)
+        local_conditions = self.load_local_condition(opt_flow, enc_frame)
 
-            # Load local conditions (optical flow and encoded frame)
-            local_condition = self.load_local_condition(opt_flow, enc_frame)
+        # Load the global conditions for this frame
+        global_conditions = self.load_global_condition(index, self.global_type_list)
 
-            # Load global conditions
-            global_condition = self.load_global_condition(index, self.global_type_list)
+        # Set text annotation (for example, you can modify it as needed)
+        txt = 'predict next image'  # Placeholder for text annotations
 
-            # Create a dictionary for the current frame
-            frame_dict = {
-                'jpg': image,  # Processed frame image
-                'txt': '',     # Annotation placeholder, as per your original code
-                'local_conditions': local_condition,  # Corresponding local condition
-                'global_conditions': global_condition  # Corresponding global condition
-            }
+        # Return a single dictionary containing the image, txt, local conditions, and global conditions
+        return {
+            'jpg': jpg,  # Single image as a numpy array [H, W, C]
+            'txt': txt,  # Text annotation for this frame
+            'local_conditions': local_conditions,  # Local conditions as numpy array
+            'global_conditions': global_conditions  # Global conditions as numpy array
+        }
 
-            # Append the dictionary to the output list
-            output_dicts.append(frame_dict)
-
-        # Return the array of dictionaries
-        return output_dicts
 
     def __len__(self):
         """Returns the total number of samples (groups of 5 frames with corresponding conditions)"""
