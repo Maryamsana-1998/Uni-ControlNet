@@ -1,10 +1,2 @@
-/laion
-all_conditions/
-global_all
-local_all
-video_local
-video_global
-finetuned*
-uni_v15*
-video_uni*
-finetunvedv2_uni_v15.ckpt
+spring/*
+monkaa/*

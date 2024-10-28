@@ -15,7 +15,7 @@ model:
     monitor: val/loss_simple_ema
     scale_factor: 0.18215
     use_ema: False
-    mode: local
+    mode: uni
 
     local_control_config:
       target: models.local_adapter.LocalAdapter
@@ -34,6 +34,12 @@ model:
         transformer_depth: 1
         context_dim: 768
         legacy: False
+    
+    global_control_config:
+      target: models.global_adapter.GlobalAdapter
+      params:
+        in_dim: 768
+        channel_mult: [2, 4]
 
     unet_config:
       target: models.local_adapter.LocalControlUNetModel
@@ -77,17 +83,3 @@ model:
 
     cond_stage_config:
       target: ldm.modules.encoders.modules.FrozenCLIPEmbedder
-
-data:
-  target: src.train.video_dataset.UniVideoDataset
-  params:
-    root: "/data2/local_datasets/spring/"
-    frame_dir: "frame_left"
-    optical_flow_dir: "flow_images"
-    encoded_frame_dir: "encoded_left"
-    resolution: 512
-    global_type_list: []
-    drop_txt_prob: 0.1
-    keep_all_cond_prob: 0.8
-    drop_all_cond_prob: 0.1
-    drop_each_cond_prob: [0.5, 0.5]

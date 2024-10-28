@@ -9,3 +9,4 @@ experiments/*
 .dvc/*
 logs/*
 tests/data
+pred_8/

@@ -81,8 +81,8 @@ model:
 data:
   target: src.train.video_dataset.UniVideoDataset
   params:
-    root: "/data2/local_datasets/spring/"
-    frame_dir: "frame_left"
+    root: "/data2/local_datasets/monkaa/"
+    frame_dir: "left"
     optical_flow_dir: "flow_images"
     encoded_frame_dir: "encoded_left"
     resolution: 512

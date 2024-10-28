@@ -10,6 +10,7 @@ from pathlib import Path
 def process_and_save_reconstructed_image(image_path, output_path, model, device): 
     # Load image and convert to a tensor
     img = Image.open(image_path).convert('RGB')
+    img = img.resize((512, 512), Image.LANCZOS)
     x = transforms.ToTensor()(img).unsqueeze(0).to(device)  # Add batch dimension and send to device (CPU/GPU)
 
     # Run the model in inference mode
@@ -31,32 +32,27 @@ def process_dataset(root_dir, model, device):
     # Loop through each video directory in train/
     for video in os.listdir(train_dir):
         video_dir = os.path.join(train_dir, video)
-        frame_dir = os.path.join(video_dir, 'frame_left')
+        frame_dir = os.path.join(video_dir, 'left')
 
         # Ensure that the frame directory exists
         if os.path.isdir(frame_dir):
             # Create the output directory inside the video sequence (encoded_frame)
             output_dir = os.path.join(video_dir, 'encoded_left')
-            if Path(output_dir).exists():
-                print('skipping: ', output_dir)
-                continue
-            else:
-                os.makedirs(output_dir, exist_ok=True)
-
-                # Loop through the frame images in the frame directory
-                for frame in tqdm(sorted(os.listdir(frame_dir)), desc=f"Processing frames for {video}"):
-                    frame_path = os.path.join(frame_dir, frame)
+            os.makedirs(output_dir, exist_ok=True)
+            # Loop through the frame images in the frame directory
+            for frame in tqdm(sorted(os.listdir(frame_dir)), desc=f"Processing frames for {video}"):
+                frame_path = os.path.join(frame_dir, frame)
+                
+                if frame.endswith('.png'):
+                    # Set the output path for the reconstructed image inside encoded_frame
+                    output_path = os.path.join(output_dir, frame)
                     
-                    if frame.endswith('.png'):
-                        # Set the output path for the reconstructed image inside encoded_frame
-                        output_path = os.path.join(output_dir, frame)
-                        
-                        # Process and save the reconstructed image
-                        process_and_save_reconstructed_image(frame_path, output_path, model, device)
+                    # Process and save the reconstructed image
+                    process_and_save_reconstructed_image(frame_path, output_path, model, device)
 
 # Define the main function to initialize the model and process the dataset
 def main():
-    root_dir = '/data/maryam.sana/datazips/spring/'  # Replace with the path to your dataset
+    root_dir = '/data/maryam.sana/datazips/monkaa/'  # Replace with the path to your dataset
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
     # Initialize the model (quality level can be changed)
