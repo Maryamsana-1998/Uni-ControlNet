@@ -32,16 +32,16 @@ seed = 42
 eta = 0.0
 global_strength = 1
 
-model = create_model("/data/maryam.sana/vimeo_unicontrol/Uni-ControlNet/configs/vimeo_4/uni_v15.yaml").cpu()
-model.load_state_dict(load_state_dict("/data/maryam.sana/vimeo_unicontrol/Uni-ControlNet/checkpoints/vimeo_4/uni.ckpt", location="cuda"))
+model = create_model("/data/maryam.sana/Uni-ControlNet/configs/spring_op/uni_v15.yaml").cpu()
+model.load_state_dict(load_state_dict("/data/maryam.sana/Uni-ControlNet/checkpoints/spring/uni.ckpt", location="cuda"))
 model = model.cuda()
 
 ddim_sampler = DDIMSampler(model)
 apply_canny = CannyDetector()
 
 def process(
-    canny_image,
-    frame_image,
+    op_flo_img,           # Replacing canny_image
+    encoded_prev_frame,   # Replacing frame_image
     prompt,
     a_prompt,
     n_prompt,
@@ -60,26 +60,34 @@ def process(
     with torch.no_grad():
         W, H = image_resolution, image_resolution
 
-        canny_image = cv2.resize(canny_image, (W, H))
-        canny_detected_map = HWC3(canny_image)
-        print(canny_detected_map.shape)
+        # Resize optical flow image
+        op_flo_img = cv2.resize(op_flo_img, (W, H))
+        op_flo_detected_map = HWC3(op_flo_img)
+        print(op_flo_detected_map.shape)
 
-        frame_map =  cv2.resize(HWC3(frame_image), (W, H))
+        # Resize encoded previous frame
+        frame_map = cv2.resize(HWC3(encoded_prev_frame), (W, H))
         print(frame_map.shape)
 
+        # Initialize empty content embedding
         content_emb = np.zeros((768))
 
-        detected_maps = np.concatenate([canny_detected_map, frame_map], axis=2)
+        # Concatenate optical flow and frame maps along the channel axis
+        detected_maps = np.concatenate([op_flo_detected_map, frame_map], axis=2)
 
+        # Prepare local control tensor
         local_control = torch.from_numpy(detected_maps.copy()).float().cuda() / 255.0
         local_control = torch.stack([local_control for _ in range(num_samples)], dim=0)
         local_control = einops.rearrange(local_control, "b h w c -> b c h w").clone()
+
+        # Prepare global control tensor
         global_control = torch.from_numpy(content_emb.copy()).float().cuda().clone()
         global_control = torch.stack([global_control for _ in range(num_samples)], dim=0)
 
         if config.save_memory:
             model.low_vram_shift(is_diffusing=False)
 
+        # Unconditional local and global control
         uc_local_control = local_control
         uc_global_control = torch.zeros_like(global_control)
         cond = {
@@ -99,6 +107,7 @@ def process(
         if config.save_memory:
             model.low_vram_shift(is_diffusing=True)
 
+        # Set model control scales
         model.control_scales = [strength] * 13
         samples, _ = ddim_sampler.sample(
             ddim_steps,
@@ -115,6 +124,7 @@ def process(
         if config.save_memory:
             model.low_vram_shift(is_diffusing=False)
 
+        # Decode and process samples
         x_samples = model.decode_first_stage(samples)
         x_samples = (
             (einops.rearrange(x_samples, "b c h w -> b h w c") * 127.5 + 127.5)
@@ -125,19 +135,15 @@ def process(
         )
         results = [x_samples[i] for i in range(num_samples)]
 
-    return (results, [canny_detected_map, frame_map])
+    return (results, [op_flo_detected_map, frame_map])
 
-def get_recons_img(prompt, original_image, canny_image, frame_image):
-    pred = process(canny_image,frame_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, strength, scale, seed, eta, global_strength)
+
+def get_recons_img(prompt, original_image, op_image, frame_image):
+    pred = process(op_image,frame_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, strength, scale, seed, eta, global_strength)
     pred_img = pred[0][0]
-
-    # Ensure the images are of the same size
-    if original_image.shape != pred_img.shape:
-        pred_img = cv2.resize(pred_img, (original_image.shape[1], original_image.shape[0]))
-
+    original_image = cv2.resize(original_image, ( pred_img.shape[1], pred_img.shape[0]))
     # Calculate residue
     residue = cv2.subtract(original_image, pred_img)
-
     return pred_img, residue
 
 
@@ -166,18 +172,18 @@ def process_images(image_paths, canny_paths, prompt, previous_frames_paths, pred
 
     # Load original images, Canny images, and previous frame images
     original_images = load_images(image_paths)
-    canny_images = load_images(canny_paths)
+    op_images = load_images(canny_paths)
     previous_frames = load_images(previous_frames_paths)
 
     predictions = []
 
     # Process each image up to the specified number
-    for i, (canny_image, original_image, frame_image) in enumerate(zip(canny_images[:num_images], original_images[:num_images], previous_frames[:num_images])):
+    for i, (op_image, original_image, frame_image) in enumerate(zip(op_images[:num_images], original_images[:num_images], previous_frames[:num_images])):
         # Get prediction and residue
         pred_image, _ = get_recons_img(
             prompt=prompt,
             original_image=original_image,
-            canny_image=canny_image,
+            op_image=op_image,
             frame_image=frame_image
         )
         predictions.append(pred_image)
