@@ -10,3 +10,4 @@ experiments/*
 logs/*
 tests/data
 pred_8/
+predictions/

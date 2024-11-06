@@ -3,43 +3,65 @@ from pytorch_msssim import ms_ssim
 from torchvision import transforms
 import torch
 from PIL import Image
-import numpy as np
-import matplotlib.pyplot as plt
+from torchmetrics.image.fid import FrechetInceptionDistance
+import lpips
 
-# Transformation to resize and convert images to tensor
-psnr_transform = transforms.Compose([
+# Initialize LPIPS and FID models
+lpips_model = lpips.LPIPS(net='alex').to('cuda' if torch.cuda.is_available() else 'cpu')
+fid_model = FrechetInceptionDistance(feature=64).to('cuda' if torch.cuda.is_available() else 'cpu')
+
+# Preprocessing transform
+transform = transforms.Compose([
     transforms.Resize((512, 512)),  # Resize to the input size expected by the model
     transforms.ToTensor(),
-    lambda x: x * 255
+    lambda x: x * 255  # Scale to 0-255
 ])
-
-def resize_image(image, size=(512, 512)):
-    return image.resize(size, Image.LANCZOS)
 
 def psnr(a: torch.Tensor, b: torch.Tensor, max_val: int = 255) -> float:
     return 20 * math.log10(max_val) - 10 * torch.log10((a - b).pow(2).mean())
 
-# Function to calculate PSNR and MS-SSIM for an image against a list of images
-def calculate_metrics(reference_image, pil_images):
-    # Transform the reference image
-    ref_tensor = psnr_transform(reference_image)
 
-    psnr_values = []
-    ms_ssim_values = []
+def calculate_metrics_batch(original_images, pred_images):
+    """
+    Calculates PSNR, MS-SSIM, LPIPS, and FID metrics for a batch of image pairs.
+    
+    Args:
+        original_images (list): List of PIL images for the original images.
+        pred_images (list): List of PIL images for the predicted images.
+    
+    Returns:
+        dict: Dictionary with metrics for the batch.
+    """
+    psnr_values, ms_ssim_values, lpips_values = [], [], []
+    fid_model.reset()  # Clear any previous FID data
 
-    for image in pil_images:
-        # Transform the current image
-        img_tensor = psnr_transform(image)
+    # Loop over the image pairs
+    for original_image, pred_image in zip(original_images, pred_images):
+        # Transform images
+        original_tensor = transform(original_image).unsqueeze(0).to('cuda' if torch.cuda.is_available() else 'cpu')
+        pred_tensor = transform(pred_image).unsqueeze(0).to('cuda' if torch.cuda.is_available() else 'cpu')
+        
+        # Calculate PSNR and MS-SSIM
+        psnr_values.append(psnr(original_tensor, pred_tensor).item())
+        ms_ssim_values.append(ms_ssim(original_tensor, pred_tensor, data_range=255, size_average=True).item())
 
-        # Calculate PSNR
-        psnr_value = psnr(ref_tensor, img_tensor)
-        psnr_values.append(psnr_value)
+        # Calculate LPIPS
+        lpips_value = lpips_model(original_tensor / 255.0, pred_tensor / 255.0).item()
+        lpips_values.append(lpips_value)
 
-        # Calculate MS-SSIM
-        ms_ssim_value = ms_ssim(ref_tensor.unsqueeze(0), img_tensor.unsqueeze(0), data_range=255, size_average=True).item()
-        ms_ssim_values.append(ms_ssim_value)
+        # Add tensors to FID model
+        fid_model.update(original_tensor.to(torch.uint8), real=True)
+        fid_model.update(pred_tensor.to(torch.uint8), real=False)
 
-    return psnr_values, ms_ssim_values
+    # Compute FID
+    fid_value = fid_model.compute().item()
+
+    return {
+        "PSNR": sum(psnr_values) / len(psnr_values),
+        "MS-SSIM": sum(ms_ssim_values) / len(ms_ssim_values),
+        "LPIPS": sum(lpips_values) / len(lpips_values),
+        "FID": fid_value
+    }
 
 
 # Function to visualize results
