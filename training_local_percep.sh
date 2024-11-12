@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --time=4-0  # Set the time limit to 3 hours
-#SBATCH --gres=gpu:8
+#SBATCH --gres=gpu:1
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=29G
 #SBATCH -p batch_grad
@@ -12,8 +12,9 @@ python src/train/train.py \
     --config-path configs/vimeo_vgg_percep/local_v15_percep.yaml \
     ---resume-path ckpt/vimeo/init_local.ckpt \
     ---max-epochs 1 \
-    ---batch-size 3 \
-    ---gpus 8 \
-    ---logdir logs/vgg/ \
-    --checkpoint-dirpath checkpoints/vimeo_vgg_0.05/
+    ---batch-size 2 \
+    ---num-workers 8 \
+    ---gpus 1 \
+    ---logdir logs/lpips_0.05/ \
+    --checkpoint-dirpath checkpoints/vimeo_lpips_0.05/
 
