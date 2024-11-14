@@ -10,12 +10,15 @@ from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 import torch.multiprocessing
-
+import torch
 from ldm.util import instantiate_from_config
 from models.util import load_state_dict
 from models.logger import ImageLogger
 
 torch.multiprocessing.set_sharing_strategy("file_system")
+
+TF_ENABLE_ONEDNN_OPTS=0
+
 parser = argparse.ArgumentParser(description="Uni-ControlNet Training")
 parser.add_argument("--config-path", type=str, default="./configs/local_v15.yaml")
 parser.add_argument("--learning-rate", type=float, default=1e-5)
@@ -30,7 +33,7 @@ parser.add_argument("---gpus", type=int, default=-1)
 parser.add_argument("--checkpoint-dirpath", type=str, default='checkpoints/vimeo_all/')  
 args = parser.parse_args()
 
-import torch
+
 
 def custom_collate_fn(batch):
     # Separate out the parts of the batch that are strings and numpy arrays/tensors
