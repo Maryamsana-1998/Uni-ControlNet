@@ -895,6 +895,9 @@ class LatentDiffusion(DDPM):
 
         if self.lpips_loss is None:
             self.lpips_loss = lpips.LPIPS(net='vgg').to(self.device)
+            self.lpips_loss.eval()
+            for param in self.lpips_loss.parameters():
+                param.requires_grad = False
 
         x_start_decoded = self.decode_first_stage(x_start)
         x_recon_decoded = self.decode_first_stage(x_recon)
@@ -945,19 +948,20 @@ class LatentDiffusion(DDPM):
         loss_dict.update({f'{prefix}/loss_vlb': loss_vlb})
         loss += (self.original_elbo_weight * loss_vlb)
         loss_dict.update({f'{prefix}/loss': loss})
-
+        
+        if self.perceptual_weight > 0:
          # Compute x_recon for perceptual loss
-        if self.parameterization == "eps":
-            x_recon = self.predict_start_from_noise(x_noisy, t=t, noise=model_output)
-        elif self.parameterization == "x0":
-            x_recon = model_output
-        else:
-            raise NotImplementedError()
-        # Perceptual loss
-        loss_perceptual = self.perceptual_loss(x_recon, x_start)
-        loss_dict.update({f'{prefix}/loss_perceptual': loss_perceptual})
+            if self.parameterization == "eps":
+                x_recon = self.predict_start_from_noise(x_noisy, t=t, noise=model_output)
+            elif self.parameterization == "x0":
+                x_recon = model_output
+            else:
+                raise NotImplementedError()
+            # Perceptual loss
+            loss_perceptual = self.perceptual_loss(x_recon, x_start)
+            loss_dict.update({f'{prefix}/loss_perceptual': loss_perceptual})
 
-        loss += self.perceptual_weight * loss_perceptual  # Add perceptual loss
+            loss += self.perceptual_weight * loss_perceptual  # Add perceptual loss
 
         return loss, loss_dict
 
