@@ -43,10 +43,12 @@ def init_global(sd_weights_path, config_path, output_path):
     print('Done.')
 
 def integrate(local_weights, global_weights, config_path, output_path):
-    local_weights = torch.load(local_weights)
+    device = 'cuda'
+    local_weights = torch.load(local_weights, map_location=device)
+    global_weights = torch.load(global_weights, map_location=device)
     if 'state_dict' in local_weights:
         local_weights = local_weights['state_dict']
-    global_weights = torch.load(global_weights)
+    # global_weights = torch.load(global_weights)
     if 'state_dict' in global_weights:
         global_weights = global_weights['state_dict']
     model = create_model(config_path=config_path)

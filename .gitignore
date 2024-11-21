@@ -1,0 +1,6 @@
+ldm/__pycache__/*
+ckpt/*
+slurm_logs/*
+checkpoints/*
+*.pyc
+logs/*

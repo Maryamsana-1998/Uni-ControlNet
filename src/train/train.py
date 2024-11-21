@@ -51,16 +51,18 @@ def main():
     dataset = instantiate_from_config(config['data'])
     dataloader = DataLoader(dataset, num_workers=num_workers, batch_size=batch_size, pin_memory=True, shuffle=True)
 
-    logger = ImageLogger(batch_frequency=logger_freq)
+    logger = ImageLogger(batch_frequency=logger_freq,num_local_conditions=2)
     checkpoint_callback = ModelCheckpoint(
         every_n_train_steps=logger_freq,
+        dirpath= 'checkpoints/vimeo_8/',
+        filename='local-best-checkpoint'
     )
         
     trainer = pl.Trainer(
         gpus=gpus,
         callbacks=[logger, checkpoint_callback], 
         default_root_dir=default_logdir,
-        max_steps=training_steps,
+        max_epochs= 2,
     )
     trainer.fit(model,
         dataloader, 
