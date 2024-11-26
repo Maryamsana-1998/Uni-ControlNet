@@ -62,7 +62,7 @@ def main():
         gpus=gpus,
         callbacks=[logger, checkpoint_callback], 
         default_root_dir=default_logdir,
-        max_epochs= 2,
+        max_epochs= 3,
     )
     trainer.fit(model,
         dataloader, 
