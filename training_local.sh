@@ -10,7 +10,7 @@
 
 python src/train/train.py \
     --config-path ./configs/local_v15.yaml \
-    ---resume-path ./ckpt/init_local.ckpt \
+    ---resume-path ./checkpoints/vimeo_8/local-best-checkpoint.ckpt \
     ---gpus 8 \
     ---batch-size 1 \
     ---logdir ./logs/vimeo_8/local/ \

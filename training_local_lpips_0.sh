@@ -10,9 +10,11 @@
 
 python src/train/train_sub.py \
     --config-path ./configs/vimeo_lpips/local_v15_lpips_0.yaml \
-    ---resume-path ./ckpt/init_local.ckpt \
+    ---resume-path ./checkpoints/vimeo_8/local-best-checkpoint-v3.ckpt \
     ---gpus 4 \
     ---batch-size 2 \
     ---logdir ./logs/vimeo_lpips_0/local/ \
+    --checkpoint-dirpath ./checkpoints/vimeo_lpips_0/ \
+    ---max-epochs 2 \
     ---num-workers 8
 
