@@ -10,7 +10,7 @@
 
 python src/train/train_sub.py \
     --config-path ./configs/vimeo_lpips/local_v15_lpips_01.yaml \
-    ---resume-path ./checkpoints/vimeo_8/local-best-checkpoint-v1.ckpt \
+    ---resume-path ./ckpt/init_local.ckpt \
     ---gpus 4 \
     ---batch-size 2 \
     ---logdir ./logs/vimeo_lpips_01/local/ \
