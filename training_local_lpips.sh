@@ -15,7 +15,7 @@ python src/train/train_sub.py \
     ---batch-size 2 \
     ---logdir ./logs/vimeo_lpips_01/local/ \
     --checkpoint-dirpath ./checkpoints/vimeo_lpips_01/ \
-    ---max-epochs 2 \
+    ---max-epochs 4 \
     ---num-workers 8
 
 
