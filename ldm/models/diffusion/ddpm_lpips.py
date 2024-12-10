@@ -5,7 +5,6 @@ https://github.com/openai/improved-diffusion/blob/e94489283bb876ac1477d5dd7709bb
 https://github.com/CompVis/taming-transformers
 -- merci
 """
-
 import torch
 import torch.nn as nn
 import numpy as np
@@ -26,8 +25,7 @@ from ldm.modules.distributions.distributions import normal_kl, DiagonalGaussianD
 from ldm.models.autoencoder import IdentityFirstStage, AutoencoderKL
 from ldm.modules.diffusionmodules.util import make_beta_schedule, extract_into_tensor, noise_like
 from ldm.models.diffusion.ddim import DDIMSampler
-import lpips
-
+from ldm.models.lpips_loss import LPIPSLoss
 
 __conditioning_keys__ = {'concat': 'c_concat',
                          'crossattn': 'c_crossattn',
@@ -886,29 +884,7 @@ class LatentDiffusion(DDPM):
         qt_mean, _, qt_log_variance = self.q_mean_variance(x_start, t)
         kl_prior = normal_kl(mean1=qt_mean, logvar1=qt_log_variance, mean2=0.0, logvar2=0.0)
         return mean_flat(kl_prior) / np.log(2.0)
-
-    def cal_lpips_loss(self,target,model_output):
-
-        if self.lpips_loss is None:
-            self.lpips_loss = lpips.LPIPS(net='vgg').to(self.device)
-            self.lpips_loss.eval()
-            for param in self.lpips_loss.parameters():
-                param.requires_grad = False
-
-        x_start_decoded = self.decode_first_stage(target)
-        x_recon_decoded = self.decode_first_stage(model_output)
-
-        x_start_decoded = torch.clamp(x_start_decoded,-1,1)
-        x_recon_decoded = torch.clamp(x_recon_decoded,-1,1)
-
-        x_start_normalized = (x_start_decoded + 1) / 2
-        x_recon_normalized = (x_recon_decoded + 1) / 2
-
-        loss_perceptual = self.lpips_loss(x_recon_normalized, x_start_normalized).mean()
-
-        return loss_perceptual
-
-    
+  
     def p_losses(self, x_start, cond, t, noise=None):
         noise = default(noise, lambda: torch.randn_like(x_start))
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
@@ -944,8 +920,11 @@ class LatentDiffusion(DDPM):
         loss += (self.original_elbo_weight * loss_vlb)
         loss_dict.update({f'{prefix}/loss': loss})
 
+        if self.lpips_loss is None:
+            self.lpips_loss = LPIPSLoss(net='vgg', standardize=True).to(self.device)
+
         if self.perceptual_weight > 0:
-            loss_lpips = self.cal_lpips_loss(target,model_output)
+            loss_lpips = self.lpips_loss(self.decode_first_stage(target),self.decode_first_stage(model_output))
             loss+=self.perceptual_weight*loss_lpips.item()
             loss_dict.update({f'{prefix}/loss_lpips': loss_lpips.item()})
 
