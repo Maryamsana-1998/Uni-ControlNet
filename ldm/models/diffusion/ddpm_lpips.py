@@ -924,8 +924,13 @@ class LatentDiffusion(DDPM):
             self.lpips_loss = LPIPSLoss(net='vgg', standardize=True).to(self.device)
 
         if self.perceptual_weight > 0:
+            # add balancing factor and updating loss
+
+            loss = loss*(1-self.perceptual_weight) 
+
             loss_lpips = self.lpips_loss(self.decode_first_stage(target),self.decode_first_stage(model_output))
             loss+=self.perceptual_weight*loss_lpips.item()
+            
             loss_dict.update({f'{prefix}/loss_lpips': loss_lpips.item()})
 
         return loss, loss_dict
