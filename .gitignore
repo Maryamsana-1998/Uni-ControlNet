@@ -5,3 +5,4 @@ checkpoints/*
 *.pyc
 logs/*
 predictions
+annotator/ckpts/

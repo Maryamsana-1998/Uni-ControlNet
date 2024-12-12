@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --time=6-0  # Set the time limit to 3 hours
-#SBATCH --gres=gpu:8
+#SBATCH --gres=gpu:4
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=29G
 #SBATCH -p batch_grad
@@ -9,9 +9,11 @@
 #SBATCH -e slurm_logs/slurm-%A_%x.err
 
 python src/train/train.py \
-    --config-path ./configs/global_v15.yaml \
+    --config-path ./configs/vimeo_lpips/global_v15.yaml \
     ---resume-path ./ckpt/init_global.ckpt \
-    ---gpus 8 \
+    ---gpus 4 \
     ---batch-size 3 \
-    ---logdir ./logs/vimeo_8/local/ \
-    ---num-workers 32
+    ---logdir ./logs/vimeo_8/global/ \
+    --checkpoint-dirpath ./checkpoints/vimeo_global/ \
+    ---max-epochs 4 \
+    ---num-workers 8

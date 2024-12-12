@@ -33,7 +33,7 @@ eta = 0.0
 global_strength = 1
 
 model = create_model("/data/maryam.sana/Uni-ControlNet/configs/uni_v15.yaml").cpu()
-model.load_state_dict(load_state_dict("/data/maryam.sana/Uni-ControlNet/checkpoints/vimeo_lpips_01/uni_v1.ckpt", location="cuda"))
+model.load_state_dict(load_state_dict("/data/maryam.sana/Uni-ControlNet/checkpoints/vimeo_lpips_s_01/uni_v1.ckpt", location="cuda"))
 model = model.cuda()
 
 ddim_sampler = DDIMSampler(model)
