@@ -133,7 +133,7 @@ def main():
         print(f"{video} Metrics: {metrics}")
 
     # Save the metrics to a JSON file
-    metrics_json_path = "all_videos_metrics.json"
+    metrics_json_path = os.path.join(pred_root, "all_videos_metrics.json")
     with open(metrics_json_path, "w") as f:
         json.dump(all_metrics, f, indent=4)
 
