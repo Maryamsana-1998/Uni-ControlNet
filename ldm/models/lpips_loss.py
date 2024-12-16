@@ -16,20 +16,17 @@ class LPIPSLoss(torch.nn.Module):
             param.requires_grad = False
 
     def forward(self, fake_image, real_image):
-        """Assuming inputs are in [0, 1] or any range if standardize is True."""
+        """Assuming inputs are in [0, 255] range."""
 
         if self.standardize:
-            # Standardize images
+            # Standardize images with provided or computed mean and std
             fake_image = self._standardize_image(fake_image)
             real_image = self._standardize_image(real_image)
         else:
-            # If not standardizing, assume images are in [0, 1], adjust if necessary
-            fake_image = torch.clamp(fake_image, 0, 1)
-            real_image = torch.clamp(real_image, 0, 1)
+            # If not standardizing, normalize by dividing by 255
+            fake_image = fake_image / 255.0
+            real_image = real_image / 255.0
 
-        # Move inputs to [-1, 1]
-        fake_image = fake_image * 2 - 1.0
-        real_image = real_image * 2 - 1.0
 
         # Compute LPIPS loss
         loss = self.lpips_func(fake_image, real_image)
@@ -49,8 +46,5 @@ class LPIPSLoss(torch.nn.Module):
 
         # Standardize the image
         image_standardized = (image - mean) / (std + 1e-8)  # Add epsilon to avoid division by zero
-
-        # Scale to [0, 1] by applying a sigmoid function (optional)
-        image_standardized = torch.sigmoid(image_standardized)  # Ensures values are in [0, 1]
 
         return image_standardized

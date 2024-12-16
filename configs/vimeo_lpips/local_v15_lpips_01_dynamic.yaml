@@ -16,7 +16,9 @@ model:
     scale_factor: 0.18215
     use_ema: False
     mode: local
-    perceptual_weight: 0.00
+    perceptual_weight: 0.1
+    lpips_net : alex
+    lpips_norm : True
 
     local_control_config:
       target: models.local_adapter.LocalAdapter

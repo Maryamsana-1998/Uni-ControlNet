@@ -535,6 +535,8 @@ class LatentDiffusion(DDPM):
                  scale_by_std=False,
                  force_null_conditioning=False,
                  perceptual_weight=0.0,
+                 lpips_net = 'alex',
+                 lpips_norm = True,
                  *args, **kwargs):
         self.force_null_conditioning = force_null_conditioning
         self.num_timesteps_cond = default(num_timesteps_cond, 1)
@@ -569,6 +571,8 @@ class LatentDiffusion(DDPM):
         
         self.perceptual_weight = perceptual_weight
         self.lpips_loss = None
+        self.lpips_net = lpips_net
+        self.lpips_norm = lpips_norm
         
         self.restarted_from_ckpt = False
         if ckpt_path is not None:
@@ -921,7 +925,7 @@ class LatentDiffusion(DDPM):
         loss_dict.update({f'{prefix}/loss': loss})
 
         if self.lpips_loss is None:
-            self.lpips_loss = LPIPSLoss(net='vgg', standardize=True).to(self.device)
+            self.lpips_loss = LPIPSLoss(net=self.lpips_net, standardize=self.lpips_norm).to(self.device)
 
         if self.perceptual_weight > 0:
             # add balancing factor and updating loss
