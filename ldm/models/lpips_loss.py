@@ -6,7 +6,8 @@ class LPIPSLoss(torch.nn.Module):
 
     def __init__(self, net='vgg', verbose=False, standardize=False, mean=None, std=None):
         super(LPIPSLoss, self).__init__()
-        self.lpips_func = lpips.LPIPS(net=net, verbose=verbose)
+        print('lpips loss with ',net)
+        self.lpips_func = lpips.LPIPS(net=net, verbose=verbose, lpips=True)
         self.standardize = standardize
         self.mean = mean
         self.std = std
@@ -17,16 +18,15 @@ class LPIPSLoss(torch.nn.Module):
 
     def forward(self, fake_image, real_image):
         """Assuming inputs are in [0, 255] range."""
-
+        # print('shape:', fake_image.shape)
         if self.standardize:
             # Standardize images with provided or computed mean and std
             fake_image = self._standardize_image(fake_image)
             real_image = self._standardize_image(real_image)
         else:
             # If not standardizing, normalize by dividing by 255
-            fake_image = fake_image / 255.0
-            real_image = real_image / 255.0
-
+            fake_image = fake_image / 255.0 * 2 - 1.0
+            real_image = real_image / 255.0 * 2 - 1.0
 
         # Compute LPIPS loss
         loss = self.lpips_func(fake_image, real_image)
@@ -47,4 +47,10 @@ class LPIPSLoss(torch.nn.Module):
         # Standardize the image
         image_standardized = (image - mean) / (std + 1e-8)  # Add epsilon to avoid division by zero
 
-        return image_standardized
+        # Normalize to [-1, 1] range
+        min_val = image_standardized.min(dim=-1, keepdim=True)[0]
+        max_val = image_standardized.max(dim=-1, keepdim=True)[0]
+        image_normalized = 2 * (image_standardized - min_val) / (max_val - min_val + 1e-8) - 1
+
+        return image_normalized
+
