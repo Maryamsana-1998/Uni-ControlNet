@@ -32,14 +32,8 @@ seed = 42
 eta = 0.0
 global_strength = 1
 
-model = create_model("/data/maryam.sana/Uni-ControlNet/configs/uni_v15.yaml").cpu()
-model.load_state_dict(load_state_dict("/data/maryam.sana/Uni-ControlNet/checkpoints/vimeo_lpips_01/uni_v1.ckpt", location="cuda"))
-model = model.cuda()
-
-ddim_sampler = DDIMSampler(model)
-apply_canny = CannyDetector()
-
 def process(
+    model,
     canny_image,
     frame_image,
     prompt,
@@ -127,8 +121,8 @@ def process(
 
     return (results, [canny_detected_map, frame_map])
 
-def get_recons_img(prompt, original_image, canny_image, frame_image):
-    pred = process(canny_image,frame_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, strength, scale, seed, eta, global_strength)
+def get_recons_img(prompt, original_image, canny_image, frame_image,model):
+    pred = process(model,canny_image,frame_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, strength, scale, seed, eta, global_strength)
     pred_img = pred[0][0]
 
     # Ensure the images are of the same size
@@ -144,12 +138,13 @@ def get_recons_img(prompt, original_image, canny_image, frame_image):
 def load_images(image_paths, color_conversion=cv2.COLOR_BGR2RGB):
     return [cv2.cvtColor(cv2.imread(path), color_conversion) for path in image_paths]
 
-# Function to process images and get predictions using previously saved frames
-def process_images(image_paths, canny_paths, prompt, previous_frames_paths, pred_folder, num_images=15):
+def process_images(config_path, ckpt_path, image_paths, canny_paths, prompt, previous_frames_paths, pred_folder, num_images=15):
     """
     Processes a given set of images, generates predictions, and calculates residues.
-    
+
     Args:
+    - config_path (str): Path to the model configuration file.
+    - ckpt_path (str): Path to the model checkpoint file.
     - image_paths (list): List of paths to the original images.
     - canny_paths (list): List of paths to the Canny images.
     - prompt (str): The text prompt for processing.
@@ -161,6 +156,13 @@ def process_images(image_paths, canny_paths, prompt, previous_frames_paths, pred
     - original_images (list): List of the original images.
     - predictions (list): List of the predicted images.
     """
+    # Load the model
+    print(f"Loading model with config: {config_path} and checkpoint: {ckpt_path}")
+    model = create_model(config_path).cpu()
+    model.load_state_dict(load_state_dict(ckpt_path, location="cuda"))
+    model = model.cuda()
+    ddim_sampler = DDIMSampler(model)
+
     # Ensure the output directory exists
     os.makedirs(pred_folder, exist_ok=True)
 
@@ -172,12 +174,12 @@ def process_images(image_paths, canny_paths, prompt, previous_frames_paths, pred
     predictions = []
 
     # Process each image up to the specified number
-    for i in range(1,num_images):
+    for i in range(1, num_images):
         # Get prediction and residue
         original_image = original_images[i]
         canny_image = canny_images[i]
-        frame_image = previous_frames[i-1]
-        
+        frame_image = previous_frames[i - 1]
+
         pred_image, _ = get_recons_img(
             prompt=prompt,
             original_image=original_image,
@@ -187,9 +189,9 @@ def process_images(image_paths, canny_paths, prompt, previous_frames_paths, pred
         predictions.append(pred_image)
 
         # Save prediction image
-        pred_image_path = os.path.join(pred_folder, f"im{i+1}_pred.png")
+        pred_image_path = os.path.join(pred_folder, f"im{i + 1}_pred.png")
         cv2.imwrite(pred_image_path, cv2.cvtColor(pred_image, cv2.COLOR_RGB2BGR))
-        
+
         print(f"Saved prediction image: {pred_image_path}")
 
     # Return the original and predicted images
