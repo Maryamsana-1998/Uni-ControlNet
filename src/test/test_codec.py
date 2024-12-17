@@ -50,6 +50,7 @@ def process(
 ):
 
     seed_everything(seed)
+    ddim_sampler = DDIMSampler(model)
 
     with torch.no_grad():
         W, H = image_resolution, image_resolution
@@ -121,7 +122,7 @@ def process(
 
     return (results, [canny_detected_map, frame_map])
 
-def get_recons_img(prompt, original_image, canny_image, frame_image,model):
+def get_recons_img(model,prompt, original_image, canny_image, frame_image):
     pred = process(model,canny_image,frame_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, strength, scale, seed, eta, global_strength)
     pred_img = pred[0][0]
 
@@ -161,8 +162,6 @@ def process_images(config_path, ckpt_path, image_paths, canny_paths, prompt, pre
     model = create_model(config_path).cpu()
     model.load_state_dict(load_state_dict(ckpt_path, location="cuda"))
     model = model.cuda()
-    ddim_sampler = DDIMSampler(model)
-
     # Ensure the output directory exists
     os.makedirs(pred_folder, exist_ok=True)
 
@@ -181,6 +180,7 @@ def process_images(config_path, ckpt_path, image_paths, canny_paths, prompt, pre
         frame_image = previous_frames[i - 1]
 
         pred_image, _ = get_recons_img(
+            model,
             prompt=prompt,
             original_image=original_image,
             canny_image=canny_image,
