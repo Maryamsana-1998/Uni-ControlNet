@@ -84,9 +84,9 @@ model:
 data:
   target: src.train.dataset.UniDataset
   params:
-    anno_path: /data2/local_datasets/vimeo_all/annotations.txt
-    image_dir: /data2/local_datasets/vimeo_all/images
-    condition_root: /data2/local_datasets/vimeo_all/condition
+    anno_path: /local_datasets/vimeo_all/annotations.txt
+    image_dir: /local_datasets/vimeo_all/images
+    condition_root: /local_datasets/vimeo_all/condition
     local_type_list: [optical_flow,quality_8]
     global_type_list: []
     resolution: 512

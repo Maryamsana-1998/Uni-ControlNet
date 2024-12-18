@@ -37,34 +37,31 @@ previous_frame_subfolder = "quality_8"
 # Number of images to process
 num_images = 2
 
-def plot_comparison(original_images, predictions_with_prompt, predictions_without_prompt, save_path):
+def plot_comparison(original_image, prediction_with_prompt, prediction_without_prompt, save_path):
     """
-    Plots original images, predictions with prompt, and predictions without prompt side by side.
+    Plots original image, prediction with prompt, and prediction without prompt side by side.
     """
-    num_images = len(original_images)
-    fig, axes = plt.subplots(3, num_images, figsize=(15, 15))
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))  # 1 row, 3 columns
 
-    for i in range(num_images):
-        # Original
-        axes[0, i].imshow(original_images[i])
-        axes[0, i].set_title("Original")
-        axes[0, i].axis('off')
+    # Original
+    axes[0].imshow(original_image)
+    axes[0].set_title("Original")
+    axes[0].axis('off')
 
-        # With Prompt
-        axes[1, i].imshow(predictions_with_prompt[i])
-        axes[1, i].set_title("With Prompt")
-        axes[1, i].axis('off')
+    # With Prompt
+    axes[1].imshow(prediction_with_prompt)
+    axes[1].set_title("With Prompt")
+    axes[1].axis('off')
 
-        # Without Prompt
-        axes[2, i].imshow(predictions_without_prompt[i])
-        axes[2, i].set_title("Without Prompt")
-        axes[2, i].axis('off')
+    # Without Prompt
+    axes[2].imshow(prediction_without_prompt)
+    axes[2].set_title("Without Prompt")
+    axes[2].axis('off')
 
     plt.tight_layout()
     plt.savefig(save_path, dpi=300)
     print(f"Comparison saved at {save_path}")
     plt.close(fig)
-
 
 # Loop through each video and perform inference
 for video_name, details in video_details.items():
@@ -104,7 +101,7 @@ for video_name, details in video_details.items():
 
     # Load original images
     original_images = [Image.open(path).convert("RGB") for path in image_paths[:num_images]]
-
+    # print(original_images,pred)
     # Plot and save comparison
     save_path = os.path.join(pred_folder, video_name, f"{video_name}_comparison.png")
-    plot_comparison(original_images, predictions_with_prompt, predictions_without_prompt, save_path)
+    plot_comparison(original_images[0], predictions_with_prompt[0], predictions_without_prompt[0], save_path)

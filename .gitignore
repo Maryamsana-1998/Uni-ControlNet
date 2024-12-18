@@ -7,3 +7,5 @@ logs/*
 predictions
 annotator/ckpts/
 experiment_*
+exp/
+test_codec/*

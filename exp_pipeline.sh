@@ -72,6 +72,6 @@ echo "Experiment finished successfully."
 
 python eval_uvg.py --original_root /data/maryam.sana/vimeo_unicontrol/Uni-ControlNet/data/UVG/ \
                    --pred_root ${PRED_DIR}  \
-                   --config /path/to/config.yaml \
+                   --config ${UNI_CONFIG} \
                    --ckpt ${UNI_CKPT}
 
