@@ -14,6 +14,22 @@ from test_utils import calculate_metrics_batch
 from models.util import create_model, load_state_dict
 from models.ddim_hacked import DDIMSampler
 
+# Video-specific prompts
+video_details = {
+    "Beauty": {
+        "prompt": "A beautiful blonde girl with pink lipstick",
+        "path": "Beauty"
+    },
+    "Jockey": {
+        "prompt": "The image features a man riding a brown horse, galloping through a grassy field. The man is wearing a yellow shirt and is skillfully guiding the horse.",
+        "path": "Jockey"
+    },
+    "Bosphorus": {
+        "prompt": "The image features a man and a woman sitting together on a boat in the water. They are both wearing ties, suggesting a formal or semi-formal occasion.",
+        "path": "Bosphorus"
+    }
+}
+
 # Function to plot original vs predicted images and save the plot
 def plot_images(original_images, predictions, save_location, start_index=4, end_index=9, dpi=300):
     fig, axes = plt.subplots(2, end_index - start_index, figsize=(30, 10))
@@ -46,9 +62,6 @@ def main():
     config_path = args.config
     ckpt_path = args.ckpt
 
-    # Videos to process
-    videos = ["Beauty", "Bosphorus", "Jockey"]
-
     # Seed for reproducibility
     seed_everything(42)
 
@@ -56,22 +69,22 @@ def main():
     all_metrics = {}
 
     # Loop through each video
-    for video in videos:
+    for video, details in video_details.items():
         print(f"\nProcessing video: {video}")
 
         # Define folders for this video
-        original_folder = os.path.join(original_root, video)
-        canny_folder = os.path.join(original_root, "optical_flow", video)
-        previous_frame_folder = os.path.join(original_root, video, "quality_8")
-        pred_folder = os.path.join(pred_root, video)
+        original_folder = os.path.join(original_root, details["path"])
+        canny_folder = os.path.join(original_root, "optical_flow", details["path"])
+        previous_frame_folder = os.path.join(original_root, details["path"], "quality_8")
+        pred_folder = os.path.join(pred_root, details["path"])
 
         # Retrieve image paths for inference
         image_paths = sorted(glob.glob(os.path.join(original_folder, "*.png")))
         canny_paths = sorted(glob.glob(os.path.join(canny_folder, "*.png")))
         previous_frames_paths = sorted(glob.glob(os.path.join(previous_frame_folder, "*.png")))
 
-        # Define the prompt (empty for now)
-        prompt = ''
+        # Retrieve the prompt for this video
+        prompt = details["prompt"]
 
         # Number of images to process
         num_images = 10
@@ -110,8 +123,8 @@ def main():
         pred_eval_images = []
 
         for i in range(2, 10):
-            original_path = os.path.join(original_root, video, f"im{i:05d}.png")
-            pred_path = os.path.join(pred_root, video, f"im{i}_pred.png")
+            original_path = os.path.join(original_root, details["path"], f"im{i:05d}.png")
+            pred_path = os.path.join(pred_root, details["path"], f"im{i}_pred.png")
 
             if os.path.exists(original_path) and os.path.exists(pred_path):
                 original_eval_images.append(Image.open(original_path).convert("RGB"))
