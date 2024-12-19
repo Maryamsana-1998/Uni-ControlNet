@@ -5,7 +5,8 @@ if './' not in sys.path:
 from omegaconf import OmegaConf
 import argparse
 
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
+from sklearn.model_selection import train_test_split
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 
@@ -51,7 +52,17 @@ def main():
     model.sd_locked = sd_locked
 
     dataset = instantiate_from_config(config['data'])
-    dataloader = DataLoader(dataset, num_workers=num_workers, batch_size=batch_size, pin_memory=True, shuffle=True)
+
+    total_size = len(dataset)
+    train_size = int(0.3 * total_size)
+    indices = list(range(total_size))
+
+    # Split the dataset into a training subset
+    train_indices, _ = train_test_split(indices, train_size=train_size, random_state=42)
+
+    # Create the training subset
+    train_subset = Subset(dataset, train_indices)
+    dataloader = DataLoader(train_subset, num_workers=num_workers, batch_size=batch_size, pin_memory=True, shuffle=True)
 
     logger = ImageLogger(batch_frequency=logger_freq,num_local_conditions=2)
     checkpoint_callback = ModelCheckpoint(
