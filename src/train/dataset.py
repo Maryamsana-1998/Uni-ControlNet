@@ -40,10 +40,14 @@ class UniDataset(Dataset):
     
     def __getitem__(self, index):
         image = cv2.imread(self.image_paths[index])
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = cv2.resize(image, (self.resolution, self.resolution))
-        image = (image.astype(np.float32) / 127.5) - 1.0
+        try:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            image = cv2.resize(image, (self.resolution, self.resolution))
+            image = (image.astype(np.float32) / 127.5) - 1.0
 
+        except:
+            print(self.image_paths[index])
+        
         anno = self.annos[index]
         local_files = []
         for local_type in self.local_type_list:
@@ -55,10 +59,14 @@ class UniDataset(Dataset):
         local_conditions = []
         for local_file in local_files:
             condition = cv2.imread(local_file)
-            condition = cv2.cvtColor(condition, cv2.COLOR_BGR2RGB)
-            condition = cv2.resize(condition, (self.resolution, self.resolution))
-            condition = condition.astype(np.float32) / 255.0
-            local_conditions.append(condition)
+            try:    
+                condition = cv2.cvtColor(condition, cv2.COLOR_BGR2RGB)
+                condition = cv2.resize(condition, (self.resolution, self.resolution))
+                condition = condition.astype(np.float32) / 255.0
+                local_conditions.append(condition)
+            except:
+                print(local_file)
+
         global_conditions = []
         for global_file in global_files:
             condition = np.load(global_file)
