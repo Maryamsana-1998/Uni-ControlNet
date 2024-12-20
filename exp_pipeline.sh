@@ -1,15 +1,15 @@
 #!/bin/bash
 #SBATCH --time=6-0
-#SBATCH --gres=gpu:8
+#SBATCH --gres=gpu:4
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=29G
 #SBATCH -p batch_grad
-#SBATCH -w ariel-v4
-#SBATCH -o experiment_2/slurm.out
-#SBATCH -e experiment_2/slurm.err
+#SBATCH -w ariel-v11
+#SBATCH -o experiment_simple/slurm.out
+#SBATCH -e experiment_simple/slurm.err
 
 # Set up directories
-EXPERIMENT_DIR="experiment_2"
+EXPERIMENT_DIR="experiment_simple"
 LOCAL_CKPT_DIR="${EXPERIMENT_DIR}/local_ckpt"
 LOGS_DIR="${EXPERIMENT_DIR}/logs"
 PRED_DIR="${EXPERIMENT_DIR}/preds"
@@ -19,11 +19,11 @@ mkdir -p ${EXPERIMENT_DIR} ${LOCAL_CKPT_DIR} ${LOGS_DIR}
 
 # Training parameters
 CONFIG_PATH="./configs/local_v15.yaml"
-INIT_CKPT="./experiment_1/local_ckpt/local-best-checkpoint.ckpt"
-NUM_GPUS=8
+INIT_CKPT="./ckpt/init_local.ckpt"
+NUM_GPUS=4
 BATCH_SIZE=3
 NUM_WORKERS=8
-MAX_EPOCHS=3
+MAX_EPOCHS=4
 
 
 # Copy config file to experiment directory
@@ -41,14 +41,15 @@ cat <<EOF > ${HYPERPARAM_FILE}
     "max_epochs": ${MAX_EPOCHS},
     "config":${CONFIG_PATH},
     "init_ckpt": ${INIT_CKPT},
-    "loss":"baseline"
+    "loss":"baseline",
+    "dataset": "40"
 }
 EOF
 
 echo "Hyperparameters JSON saved at ${HYPERPARAM_FILE}"
 
 # Run Training
-python src/train/train.py \
+python src/train/train_sub.py \
     --config-path ${CONFIG_PATH} \
     ---resume-path ${INIT_CKPT} \
     ---gpus ${NUM_GPUS} \

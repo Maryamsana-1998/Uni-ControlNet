@@ -54,7 +54,7 @@ def main():
     dataset = instantiate_from_config(config['data'])
 
     total_size = len(dataset)
-    train_size = int(0.3 * total_size)
+    train_size = int(0.4 * total_size)
     indices = list(range(total_size))
 
     # Split the dataset into a training subset
