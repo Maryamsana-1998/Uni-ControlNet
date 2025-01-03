@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --time=6-0
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:6
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=29G
 #SBATCH -p batch_grad
@@ -20,7 +20,7 @@ mkdir -p ${EXPERIMENT_DIR} ${LOCAL_CKPT_DIR} ${LOGS_DIR}
 # Training parameters
 CONFIG_PATH="./configs/global_v15.yaml"
 INIT_CKPT="./ckpt/init_global.ckpt"
-NUM_GPUS=4
+NUM_GPUS=6
 BATCH_SIZE=3
 NUM_WORKERS=8
 MAX_EPOCHS=4
