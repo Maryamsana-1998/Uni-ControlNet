@@ -411,7 +411,8 @@ class DDPM(pl.LightningModule):
         loss_dict.update({f'{log_prefix}/loss': loss})
 
         if self.lpips_model is None:
-            self.lpips_model = NormFixLPIPS(net='vgg').eval()
+            print(' LPIPS normfix initialized alexnet')
+            self.lpips_model = NormFixLPIPS(net='alex',lpips=True).eval()
             self.lpips_model.to(self.device)
 
         if self.perceptual_weight > 0:
@@ -940,7 +941,8 @@ class LatentDiffusion(DDPM):
         loss_dict.update({f'{prefix}/loss': loss})
 
         if self.lpips_model is None:
-            self.lpips_model = NormFixLPIPS(net='vgg').eval()
+            print(' LPIPS normfix initialized alexnet')
+            self.lpips_model = NormFixLPIPS(net='alex',lpips=True).eval()
             self.lpips_model.to(self.device)
 
         if self.perceptual_weight > 0:
@@ -951,10 +953,10 @@ class LatentDiffusion(DDPM):
             x_pred = torch.clamp(self.decode_first_stage(model_output),-1,1)
             lpips_loss = self.lpips_model(x_pred, x, normalize=False).mean()
 
-            lpips_loss = lpips_loss / torch.exp(logvar_t) + logvar_t
-            loss+= (self.perceptual_weight*lpips_loss.mean())
+            # lpips_loss = lpips_loss / torch.exp(logvar_t) + logvar_t
+            loss+= (self.perceptual_weight*lpips_loss)
             
-            loss_dict.update({f'{prefix}/loss_lpips': lpips_loss.mean()})
+            loss_dict.update({f'{prefix}/loss_lpips': lpips_loss})
 
         return loss, loss_dict
 

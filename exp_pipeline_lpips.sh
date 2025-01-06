@@ -5,11 +5,11 @@
 #SBATCH --mem-per-gpu=29G
 #SBATCH -p batch_grad
 #SBATCH -w ariel-v4
-#SBATCH -o experiment_lpips_normfix/slurm.out
-#SBATCH -e experiment_lpips_normfix/slurm.err
+#SBATCH -o experiment_lpips_normfix2/slurm.out
+#SBATCH -e experiment_lpips_normfix2/slurm.err
 
 # Set up directories
-EXPERIMENT_DIR="experiment_lpips_normfix"
+EXPERIMENT_DIR="experiment_lpips_normfix2"
 LOCAL_CKPT_DIR="${EXPERIMENT_DIR}/local_ckpt"
 LOGS_DIR="${EXPERIMENT_DIR}/logs"
 PRED_DIR="${EXPERIMENT_DIR}/preds"
@@ -41,7 +41,7 @@ cat <<EOF > ${HYPERPARAM_FILE}
     "max_epochs": ${MAX_EPOCHS},
     "config": "${CONFIG_PATH}",
     "init_ckpt": "${INIT_CKPT}",
-    "loss":"baseline+lpips normfix",
+    "loss":"baseline+lpips normfix without logvar",
     "data": "40"
 }
 EOF

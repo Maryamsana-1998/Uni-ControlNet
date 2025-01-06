@@ -25,7 +25,7 @@ from ldm.modules.distributions.distributions import normal_kl, DiagonalGaussianD
 from ldm.models.autoencoder import IdentityFirstStage, AutoencoderKL
 from ldm.modules.diffusionmodules.util import make_beta_schedule, extract_into_tensor, noise_like
 from ldm.models.diffusion.ddim import DDIMSampler
-from ldm.models.lpips_loss import LPIPSLoss
+from ldm.models.lpips_loss import NormFixLPIPS
 
 __conditioning_keys__ = {'concat': 'c_concat',
                          'crossattn': 'c_crossattn',
@@ -77,8 +77,6 @@ class DDPM(pl.LightningModule):
                  reset_ema=False,
                  reset_num_ema_updates=False,
                  perceptual_weight=0.0,
-                 lpips_net = 'alex',
-                 lpips_norm = True,
                  ):
         super().__init__()
         assert parameterization in ["eps", "x0", "v"], 'currently only supporting "eps" and "x0" and "v"'
@@ -126,9 +124,7 @@ class DDPM(pl.LightningModule):
 
         self.loss_type = loss_type
         self.perceptual_weight = perceptual_weight
-        self.lpips_loss = None
-        self.lpips_net = lpips_net
-        self.lpips_norm = lpips_norm
+        self.lpips_model = None
 
         self.learn_logvar = learn_logvar
         logvar = torch.full(fill_value=logvar_init, size=(self.num_timesteps,))
@@ -414,15 +410,20 @@ class DDPM(pl.LightningModule):
 
         loss_dict.update({f'{log_prefix}/loss': loss})
 
-        if hasattr(self, 'perceptual_weight') and self.perceptual_weight > 0:
-            if not hasattr(self, 'lpips_loss') or self.lpips_loss is None:
-                self.lpips_loss = LPIPSLoss(net=self.lpips_net, standardize=self.lpips_norm).to(self.device)
+        if self.lpips_model is None:
+            self.lpips_model = NormFixLPIPS(net='vgg',lpips=True).eval()
+            self.lpips_model.to(self.device)
 
-            # Modify loss as per weighting
-            loss = loss*(1 - self.perceptual_weight)
-            loss_lpips = self.lpips_loss(self.decode_first_stage(target), self.decode_first_stage(model_out))
-            loss += self.perceptual_weight * loss_lpips.item()
-            loss_dict.update({f'{log_prefix}/loss_lpips': loss_lpips.item()})
+        if self.perceptual_weight > 0:
+            # add balancing factor and updating loss
+
+            loss = loss*(1-self.perceptual_weight) 
+            x = torch.clamp(self.decode_first_stage(target),-1,1)
+            x_pred = torch.clamp(self.decode_first_stage(model_out),-1,1)
+            lpips_loss = self.lpips_model(x_pred, x, normalize=False).mean()
+            loss+=self.perceptual_weight*lpips_loss
+            
+            loss_dict.update({f'{log_prefix}/loss_lpips': lpips_loss})
 
         return loss, loss_dict
 
@@ -552,8 +553,6 @@ class LatentDiffusion(DDPM):
                  scale_by_std=False,
                  force_null_conditioning=False,
                  perceptual_weight=0.0,
-                 lpips_net = 'alex',
-                 lpips_norm = True,
                  *args, **kwargs):
         self.force_null_conditioning = force_null_conditioning
         self.num_timesteps_cond = default(num_timesteps_cond, 1)
@@ -587,9 +586,7 @@ class LatentDiffusion(DDPM):
         self.bbox_tokenizer = None
         
         self.perceptual_weight = perceptual_weight
-        self.lpips_loss = None
-        self.lpips_net = lpips_net
-        self.lpips_norm = lpips_norm
+        self.lpips_model = None
         
         self.restarted_from_ckpt = False
         if ckpt_path is not None:
@@ -928,6 +925,7 @@ class LatentDiffusion(DDPM):
 
         logvar_t = self.logvar[t].to(self.device)
         loss = loss_simple / torch.exp(logvar_t) + logvar_t
+
         # loss = loss_simple / torch.exp(self.logvar) + self.logvar
         if self.learn_logvar:
             loss_dict.update({f'{prefix}/loss_gamma': loss.mean()})
@@ -941,18 +939,22 @@ class LatentDiffusion(DDPM):
         loss += (self.original_elbo_weight * loss_vlb)
         loss_dict.update({f'{prefix}/loss': loss})
 
-        if self.lpips_loss is None:
-            self.lpips_loss = LPIPSLoss(net=self.lpips_net, standardize=self.lpips_norm).to(self.device)
+        if self.lpips_model is None:
+            self.lpips_model = NormFixLPIPS(net='vgg',lpips=True).eval()
+            self.lpips_model.to(self.device)
 
         if self.perceptual_weight > 0:
             # add balancing factor and updating loss
 
             loss = loss*(1-self.perceptual_weight) 
+            x = torch.clamp(self.decode_first_stage(target),-1,1)
+            x_pred = torch.clamp(self.decode_first_stage(model_output),-1,1)
+            lpips_loss = self.lpips_model(x_pred, x, normalize=False).mean()
 
-            loss_lpips = self.lpips_loss(self.decode_first_stage(target),self.decode_first_stage(model_output))
-            loss+=self.perceptual_weight*loss_lpips.item()
+            # lpips_loss = lpips_loss / torch.exp(logvar_t) + logvar_t
+            loss+= (self.perceptual_weight*lpips_loss)
             
-            loss_dict.update({f'{prefix}/loss_lpips': loss_lpips.item()})
+            loss_dict.update({f'{prefix}/loss_lpips': lpips_loss})
 
         return loss, loss_dict
 
