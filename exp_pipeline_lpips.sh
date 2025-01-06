@@ -1,15 +1,15 @@
 #!/bin/bash
 #SBATCH --time=6-0
-#SBATCH --gres=gpu:6
+#SBATCH --gres=gpu:4
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=29G
 #SBATCH -p batch_grad
 #SBATCH -w ariel-v4
-#SBATCH -o experiment_lpips_s/slurm.out
-#SBATCH -e experiment_lpips_s/slurm.err
+#SBATCH -o experiment_lpips_normfix/slurm.out
+#SBATCH -e experiment_lpips_normfix/slurm.err
 
 # Set up directories
-EXPERIMENT_DIR="experiment_lpips_s"
+EXPERIMENT_DIR="experiment_lpips_normfix"
 LOCAL_CKPT_DIR="${EXPERIMENT_DIR}/local_ckpt"
 LOGS_DIR="${EXPERIMENT_DIR}/logs"
 PRED_DIR="${EXPERIMENT_DIR}/preds"
@@ -18,9 +18,9 @@ PRED_DIR="${EXPERIMENT_DIR}/preds"
 mkdir -p ${EXPERIMENT_DIR} ${LOCAL_CKPT_DIR} ${LOGS_DIR}
 
 # Training parameters
-CONFIG_PATH="./configs/vimeo_lpips/local_v15_lpips_01_static.yaml"
+CONFIG_PATH="./configs/vimeo_lpips/local_v15.yaml"
 INIT_CKPT="./ckpt/init_local.ckpt"
-NUM_GPUS=6
+NUM_GPUS=4
 BATCH_SIZE=3
 NUM_WORKERS=8
 MAX_EPOCHS=4
@@ -39,9 +39,9 @@ cat <<EOF > ${HYPERPARAM_FILE}
     "batch_size": ${BATCH_SIZE},
     "num_workers": ${NUM_WORKERS},
     "max_epochs": ${MAX_EPOCHS},
-    "config":${CONFIG_PATH},
-    "init_ckpt": ${INIT_CKPT},
-    "loss":"baseline+lpips",
+    "config": "${CONFIG_PATH}",
+    "init_ckpt": "${INIT_CKPT}",
+    "loss":"baseline+lpips normfix",
     "data": "40"
 }
 EOF
