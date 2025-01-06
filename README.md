@@ -50,7 +50,7 @@ where $L_{VLB}$ ensures efficient latent-space representation, $L_{MSE}$ preserv
 ## Results
 
 
-<img background-color=white width="800" alt="image" src="./figs/output.png">
+<img background-color=white width="800" alt="image" src="./figs/Beauty_comparison.png">
 
 
 ## Acknowledgements 
