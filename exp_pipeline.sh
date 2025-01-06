@@ -5,11 +5,11 @@
 #SBATCH --mem-per-gpu=29G
 #SBATCH -p batch_grad
 #SBATCH -w ariel-v11
-#SBATCH -o experiment_simple/slurm.out
-#SBATCH -e experiment_simple/slurm.err
+#SBATCH -o experiment_fdn/slurm.out
+#SBATCH -e experiment_fdn/slurm.err
 
 # Set up directories
-EXPERIMENT_DIR="experiment_simple"
+EXPERIMENT_DIR="experiment_fdn"
 LOCAL_CKPT_DIR="${EXPERIMENT_DIR}/local_ckpt"
 LOGS_DIR="${EXPERIMENT_DIR}/logs"
 PRED_DIR="${EXPERIMENT_DIR}/preds"
@@ -19,7 +19,7 @@ mkdir -p ${EXPERIMENT_DIR} ${LOCAL_CKPT_DIR} ${LOGS_DIR}
 
 # Training parameters
 CONFIG_PATH="./configs/local_v15.yaml"
-INIT_CKPT="./ckpt/init_local.ckpt"
+INIT_CKPT="./ckpt/init_local_mod.ckpt"
 NUM_GPUS=4
 BATCH_SIZE=3
 NUM_WORKERS=8
@@ -39,8 +39,8 @@ cat <<EOF > ${HYPERPARAM_FILE}
     "batch_size": ${BATCH_SIZE},
     "num_workers": ${NUM_WORKERS},
     "max_epochs": ${MAX_EPOCHS},
-    "config":${CONFIG_PATH},
-    "init_ckpt": ${INIT_CKPT},
+    "config":"${CONFIG_PATH}",
+    "init_ckpt": "${INIT_CKPT}",
     "loss":"baseline",
     "dataset": "40"
 }
