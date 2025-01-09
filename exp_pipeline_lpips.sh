@@ -1,15 +1,15 @@
 #!/bin/bash
 #SBATCH --time=6-0
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:8
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=29G
 #SBATCH -p batch_grad
-#SBATCH -w ariel-v4
-#SBATCH -o experiment_lpips_normfix2/slurm.out
-#SBATCH -e experiment_lpips_normfix2/slurm.err
+#SBATCH -w ariel-v11
+#SBATCH -o exp_perco_lpips/slurm.out
+#SBATCH -e exp_perco_lpips/slurm.err
 
 # Set up directories
-EXPERIMENT_DIR="experiment_lpips_normfix2"
+EXPERIMENT_DIR="exp_perco_lpips"
 LOCAL_CKPT_DIR="${EXPERIMENT_DIR}/local_ckpt"
 LOGS_DIR="${EXPERIMENT_DIR}/logs"
 PRED_DIR="${EXPERIMENT_DIR}/preds"
@@ -20,10 +20,10 @@ mkdir -p ${EXPERIMENT_DIR} ${LOCAL_CKPT_DIR} ${LOGS_DIR}
 # Training parameters
 CONFIG_PATH="./configs/vimeo_lpips/local_v15.yaml"
 INIT_CKPT="./ckpt/init_local.ckpt"
-NUM_GPUS=4
+NUM_GPUS=8
 BATCH_SIZE=3
 NUM_WORKERS=8
-MAX_EPOCHS=4
+MAX_EPOCHS=7
 
 
 # Copy config file to experiment directory
@@ -42,14 +42,14 @@ cat <<EOF > ${HYPERPARAM_FILE}
     "config": "${CONFIG_PATH}",
     "init_ckpt": "${INIT_CKPT}",
     "loss":"baseline+lpips normfix without logvar",
-    "data": "40"
+    "data": "100"
 }
 EOF
 
 echo "Hyperparameters JSON saved at ${HYPERPARAM_FILE}"
 
 # Run Training
-python src/train/train_sub.py \
+python src/train/train.py \
     --config-path ${CONFIG_PATH} \
     ---resume-path ${INIT_CKPT} \
     ---gpus ${NUM_GPUS} \

@@ -16,7 +16,8 @@ model:
     scale_factor: 0.18215
     use_ema: False
     mode: local
-    perceptual_weight: 0.1
+    perceptual_weight: 0.075
+    color_weight: 0.025
 
     local_control_config:
       target: models.local_adapter.LocalAdapter
@@ -82,9 +83,9 @@ model:
 data:
   target: src.train.dataset.UniDataset
   params:
-    anno_path: /local_datasets/vimeo_all/annotations.txt
-    image_dir: /local_datasets/vimeo_all/images
-    condition_root: /local_datasets/vimeo_all/condition
+    anno_path: /data2/local_datasets/vimeo_all/annotations.txt
+    image_dir: /data2/local_datasets/vimeo_all/images
+    condition_root: /data2/local_datasets/vimeo_all/condition
     local_type_list: [optical_flow,quality_8]
     global_type_list: []
     resolution: 512

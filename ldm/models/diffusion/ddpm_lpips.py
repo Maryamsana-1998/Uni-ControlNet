@@ -77,6 +77,7 @@ class DDPM(pl.LightningModule):
                  reset_ema=False,
                  reset_num_ema_updates=False,
                  perceptual_weight=0.0,
+                 color_weight=0
                  ):
         super().__init__()
         assert parameterization in ["eps", "x0", "v"], 'currently only supporting "eps" and "x0" and "v"'
@@ -123,6 +124,7 @@ class DDPM(pl.LightningModule):
                                linear_start=linear_start, linear_end=linear_end, cosine_s=cosine_s)
 
         self.loss_type = loss_type
+        self.color_weight = color_weight
         self.perceptual_weight = perceptual_weight
         self.lpips_model = None
 
@@ -419,10 +421,20 @@ class DDPM(pl.LightningModule):
             # add balancing factor and updating loss
 
             loss = loss*(1-self.perceptual_weight) 
-            x = torch.clamp(self.decode_first_stage(target),-1,1)
-            x_pred = torch.clamp(self.decode_first_stage(model_out),-1,1)
+            img_target = self.decode_first_stage(target)
+            x = torch.clamp(img_target,-1,1)
+            img_pred = self.decode_first_stage(model_out)
+            x_pred = torch.clamp(img_pred,-1,1)
             lpips_loss = self.lpips_model(x_pred, x, normalize=False).mean()
-            loss+=self.perceptual_weight*lpips_loss
+
+            # lpips_loss = lpips_loss / torch.exp(logvar_t) + logvar_t
+            loss+= (self.perceptual_weight*lpips_loss)
+
+            color_loss = torch.nn.functional.mse_loss(img_target, img_pred, reduction='none').mean(dim=(1, 2, 3))
+            
+            loss+=(color_loss*self.color_weight)
+
+            loss_dict.update({f'{log_prefix}/loss_color': color_loss})
             
             loss_dict.update({f'{log_prefix}/loss_lpips': lpips_loss})
 
@@ -553,7 +565,8 @@ class LatentDiffusion(DDPM):
                  scale_factor=1.0,
                  scale_by_std=False,
                  force_null_conditioning=False,
-                 perceptual_weight=0.0,
+                 perceptual_weight=0.0, 
+                 color_weight=0.0,
                  *args, **kwargs):
         self.force_null_conditioning = force_null_conditioning
         self.num_timesteps_cond = default(num_timesteps_cond, 1)
@@ -587,6 +600,7 @@ class LatentDiffusion(DDPM):
         self.bbox_tokenizer = None
         
         self.perceptual_weight = perceptual_weight
+        self.color_weight = color_weight
         self.lpips_model = None
         
         self.restarted_from_ckpt = False
@@ -949,12 +963,20 @@ class LatentDiffusion(DDPM):
             # add balancing factor and updating loss
 
             loss = loss*(1-self.perceptual_weight) 
-            x = torch.clamp(self.decode_first_stage(target),-1,1)
-            x_pred = torch.clamp(self.decode_first_stage(model_output),-1,1)
+            img_target = self.decode_first_stage(target)
+            x = torch.clamp(img_target,-1,1)
+            img_pred = self.decode_first_stage(model_output)
+            x_pred = torch.clamp(img_pred,-1,1)
             lpips_loss = self.lpips_model(x_pred, x, normalize=False).mean()
 
             # lpips_loss = lpips_loss / torch.exp(logvar_t) + logvar_t
             loss+= (self.perceptual_weight*lpips_loss)
+
+            color_loss = torch.nn.functional.mse_loss(img_target, img_pred, reduction='none').mean(dim=(1, 2, 3))
+            
+            loss+=(color_loss*self.color_weight)
+
+            loss_dict.update({f'{prefix}/loss_color': color_loss})
             
             loss_dict.update({f'{prefix}/loss_lpips': lpips_loss})
 
