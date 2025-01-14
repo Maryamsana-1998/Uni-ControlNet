@@ -430,11 +430,11 @@ class DDPM(pl.LightningModule):
             # lpips_loss = lpips_loss / torch.exp(logvar_t) + logvar_t
             loss+= (self.perceptual_weight*lpips_loss)
 
-            color_loss = torch.nn.functional.mse_loss(img_target, img_pred, reduction='none').mean(dim=(1, 2, 3))
+            # color_loss = torch.nn.functional.mse_loss(img_target, img_pred, reduction='none').mean(dim=(1, 2, 3))
             
-            loss+=(color_loss*self.color_weight)
+            # loss+=(color_loss*self.color_weight)
 
-            loss_dict.update({f'{log_prefix}/loss_color': color_loss})
+            # loss_dict.update({f'{log_prefix}/loss_color': color_loss})
             
             loss_dict.update({f'{log_prefix}/loss_lpips': lpips_loss})
 
@@ -972,11 +972,11 @@ class LatentDiffusion(DDPM):
             # lpips_loss = lpips_loss / torch.exp(logvar_t) + logvar_t
             loss+= (self.perceptual_weight*lpips_loss)
 
-            color_loss = torch.nn.functional.mse_loss(img_target, img_pred, reduction='none').mean(dim=(1, 2, 3))
+            # color_loss = torch.nn.functional.mse_loss(img_target, img_pred, reduction='none').mean(dim=(1, 2, 3))
             
-            loss+=(color_loss*self.color_weight)
+            # loss+=(color_loss*self.color_weight)
 
-            loss_dict.update({f'{prefix}/loss_color': color_loss})
+            # loss_dict.update({f'{prefix}/loss_color': color_loss})
             
             loss_dict.update({f'{prefix}/loss_lpips': lpips_loss})
 

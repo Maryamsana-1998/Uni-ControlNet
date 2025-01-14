@@ -1,15 +1,15 @@
 #!/bin/bash
 #SBATCH --time=6-0
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:5
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=29G
 #SBATCH -p batch_grad
-#SBATCH -w ariel-v8
-#SBATCH -o exp_color_lpips/slurm.out
-#SBATCH -e exp_color_lpips/slurm.err
+#SBATCH -w ariel-v10
+#SBATCH -o experiment_fdn_noise/slurm.out
+#SBATCH -e experiment_fdn_noise/slurm.err
 
 # Set up directories
-EXPERIMENT_DIR="exp_color_lpips"
+EXPERIMENT_DIR="experiment_fdn_noise"
 LOCAL_CKPT_DIR="${EXPERIMENT_DIR}/local_ckpt"
 LOGS_DIR="${EXPERIMENT_DIR}/logs"
 PRED_DIR="${EXPERIMENT_DIR}/preds"
@@ -18,12 +18,12 @@ PRED_DIR="${EXPERIMENT_DIR}/preds"
 mkdir -p ${EXPERIMENT_DIR} ${LOCAL_CKPT_DIR} ${LOGS_DIR}
 
 # Training parameters
-CONFIG_PATH="./configs/vimeo_lpips/local_v15.yaml"
-INIT_CKPT="./ckpt/init_local.ckpt"
-NUM_GPUS=4
-BATCH_SIZE=3
-NUM_WORKERS=8
-MAX_EPOCHS=4
+CONFIG_PATH="./configs/vimeo_lpips/local_v15_fdn.yaml"
+INIT_CKPT="./ckpt/init_local_mod.ckpt"
+NUM_GPUS=5
+BATCH_SIZE=4
+NUM_WORKERS=10
+MAX_EPOCHS=8
 
 
 # Copy config file to experiment directory
@@ -41,15 +41,16 @@ cat <<EOF > ${HYPERPARAM_FILE}
     "max_epochs": ${MAX_EPOCHS},
     "config":${CONFIG_PATH},
     "init_ckpt": ${INIT_CKPT},
-    "loss":"baseline+ color+ lpips",
-    "dataset": "40"
+    "loss": "baseline+lpips",
+    "feature": "fdn",
+    "dataset": "100"
 }
 EOF
 
 echo "Hyperparameters JSON saved at ${HYPERPARAM_FILE}"
 
 # Run Training
-python src/train/train_sub.py \
+python src/train/train.py \
     --config-path ${CONFIG_PATH} \
     ---resume-path ${INIT_CKPT} \
     ---gpus ${NUM_GPUS} \
@@ -62,10 +63,10 @@ python src/train/train_sub.py \
 # After training, prepare uni weights
 LOCAL_BEST="${LOCAL_CKPT_DIR}/local-best-checkpoint.ckpt"
 UNI_CKPT="${EXPERIMENT_DIR}/uni.ckpt"
-UNI_CONFIG="configs/uni_v15.yaml"
+UNI_CONFIG="configs/vimeo_lpips/uni_v15_fdn.yaml"
 
 python utils/prepare_weights.py integrate \
-       ${LOCAL_BEST} ckpt/init_global.ckpt  \
+       ${LOCAL_BEST} ckpt/init_global_m.ckpt  \
        ${UNI_CONFIG} ${UNI_CKPT} 
 
 echo "Unified weights prepared and stored at ${UNI_CKPT}."
