@@ -9,3 +9,5 @@ annotator/ckpts/
 experiment_*
 exp/
 test_codec/*
+exp_c*
+exp_perco*
