@@ -4,12 +4,12 @@
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=29G
 #SBATCH -p batch_grad
-#SBATCH -w ariel-v11
-#SBATCH -o experiment_simple/slurm.out
-#SBATCH -e experiment_simple/slurm.err
+#SBATCH -w ariel-v8
+#SBATCH -o exp_color_lpips/slurm.out
+#SBATCH -e exp_color_lpips/slurm.err
 
 # Set up directories
-EXPERIMENT_DIR="experiment_simple"
+EXPERIMENT_DIR="exp_color_lpips"
 LOCAL_CKPT_DIR="${EXPERIMENT_DIR}/local_ckpt"
 LOGS_DIR="${EXPERIMENT_DIR}/logs"
 PRED_DIR="${EXPERIMENT_DIR}/preds"
@@ -18,7 +18,7 @@ PRED_DIR="${EXPERIMENT_DIR}/preds"
 mkdir -p ${EXPERIMENT_DIR} ${LOCAL_CKPT_DIR} ${LOGS_DIR}
 
 # Training parameters
-CONFIG_PATH="./configs/local_v15.yaml"
+CONFIG_PATH="./configs/vimeo_lpips/local_v15.yaml"
 INIT_CKPT="./ckpt/init_local.ckpt"
 NUM_GPUS=4
 BATCH_SIZE=3
@@ -41,7 +41,7 @@ cat <<EOF > ${HYPERPARAM_FILE}
     "max_epochs": ${MAX_EPOCHS},
     "config":${CONFIG_PATH},
     "init_ckpt": ${INIT_CKPT},
-    "loss":"baseline",
+    "loss":"baseline+ color+ lpips",
     "dataset": "40"
 }
 EOF
