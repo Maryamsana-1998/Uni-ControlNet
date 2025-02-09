@@ -21,7 +21,7 @@ mkdir -p ${EXPERIMENT_DIR} ${LOCAL_CKPT_DIR} ${LOGS_DIR}
 CONFIG_PATH="./configs/vimeo_lpips/local_v15_fdn.yaml"
 INIT_CKPT="./ckpt/init_local_mod.ckpt"
 NUM_GPUS=5
-BATCH_SIZE=4
+BATCH_SIZE=3
 NUM_WORKERS=10
 MAX_EPOCHS=8
 

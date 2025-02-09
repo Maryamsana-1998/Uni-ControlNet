@@ -65,6 +65,7 @@ def integrate(local_weights, global_weights, config_path, output_path):
             assert sk in global_weights.keys()
             target_dict[sk] = global_weights[sk].clone()
         else:
+            print(sk,'error sk')
             raise ValueError()
     model.load_state_dict(target_dict, strict=True)
     torch.save(model.state_dict(), output_path)
