@@ -5,11 +5,11 @@
 #SBATCH --mem-per-gpu=29G
 #SBATCH -p batch_grad
 #SBATCH -w ariel-v8
-#SBATCH -o exp_perco_lpips_aug/slurm.out
-#SBATCH -e exp_perco_lpips_aug/slurm.err
+#SBATCH -o exp_perco_lpips_aug2/slurm.out
+#SBATCH -e exp_perco_lpips_aug2/slurm.err
 
 # Set up directories
-EXPERIMENT_DIR="exp_perco_lpips_aug"
+EXPERIMENT_DIR="exp_perco_lpips_aug2"
 LOCAL_CKPT_DIR="${EXPERIMENT_DIR}/local_ckpt"
 LOGS_DIR="${EXPERIMENT_DIR}/logs"
 PRED_DIR="${EXPERIMENT_DIR}/preds"
@@ -19,11 +19,11 @@ mkdir -p ${EXPERIMENT_DIR} ${LOCAL_CKPT_DIR} ${LOGS_DIR}
 
 # Training parameters
 CONFIG_PATH="./configs/vimeo_lpips/local_v15.yaml"
-INIT_CKPT="./ckpt/init_local.ckpt"
+INIT_CKPT="./exp_perco_lpips_aug/local_ckpt/local-best-checkpoint.ckpt"
 NUM_GPUS=8
 BATCH_SIZE=3
 NUM_WORKERS=16
-MAX_EPOCHS=5
+MAX_EPOCHS=2
 
 
 # Copy config file to experiment directory

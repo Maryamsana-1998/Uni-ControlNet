@@ -17,7 +17,7 @@ from models.ddim_hacked import DDIMSampler
 # Video-specific prompts
 video_details = {
     "Beauty": {
-        "prompt": "A beautiful blonde girl with pink lipstick with black background",
+        "prompt": "A beautiful blonde girl with pink lipstick",
         "path": "Beauty"
     },
     "Jockey": {
@@ -74,8 +74,8 @@ def main():
 
         # Define folders for this video
         original_folder = os.path.join(original_root, details["path"])
-        canny_folder = os.path.join(original_root, "optical_flow", details["path"]+ '_reconstructed')
-        previous_frame_folder = os.path.join(original_root, details["path"], "quality_4")
+        canny_folder = os.path.join(original_root, "optical_flow", details["path"])
+        previous_frame_folder = os.path.join(original_root, details["path"], "quality_8")
         pred_folder = os.path.join(pred_root, details["path"])
 
         # Retrieve image paths for inference
@@ -87,7 +87,7 @@ def main():
         prompt = details["prompt"]
 
         # Number of images to process
-        num_images = 15
+        num_images = 10
 
         # Ensure prediction directory exists
         os.makedirs(pred_folder, exist_ok=True)
@@ -122,7 +122,7 @@ def main():
         original_eval_images = []
         pred_eval_images = []
 
-        for i in range(2, 15):
+        for i in range(2, 10):
             original_path = os.path.join(original_root, details["path"], f"im{i:05d}.png")
             pred_path = os.path.join(pred_root, details["path"], f"im{i}_pred.png")
 

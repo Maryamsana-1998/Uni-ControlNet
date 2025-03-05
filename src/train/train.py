@@ -52,6 +52,7 @@ def main():
 
     dataset = instantiate_from_config(config['data'])
     dataloader = DataLoader(dataset, num_workers=num_workers, batch_size=batch_size, pin_memory=True, shuffle=True)
+    print(f"Total dataset size: {len(dataloader.dataset)}")
 
     logger = ImageLogger(batch_frequency=logger_freq,num_local_conditions=2)
     checkpoint_callback = ModelCheckpoint(
@@ -61,10 +62,11 @@ def main():
     )
         
     trainer = pl.Trainer(
+        max_steps=-1,
         gpus=gpus,
         callbacks=[logger, checkpoint_callback], 
         default_root_dir=default_logdir,
-        max_epochs= args.max_epochs,
+        max_epochs= args.max_epochs
     )
     trainer.fit(model,
         dataloader, 
