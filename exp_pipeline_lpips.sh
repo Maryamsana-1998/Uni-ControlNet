@@ -19,7 +19,7 @@ mkdir -p ${EXPERIMENT_DIR} ${LOCAL_CKPT_DIR} ${LOGS_DIR}
 
 # Training parameters
 CONFIG_PATH="./configs/vimeo_lpips/local_v15.yaml"
-INIT_CKPT="./exp_perco_lpips_aug/local_ckpt/local-best-checkpoint.ckpt"
+INIT_CKPT="./exp_perco_lpips_aug2/local_ckpt/local-best-checkpoint.ckpt"
 NUM_GPUS=8
 BATCH_SIZE=3
 NUM_WORKERS=16

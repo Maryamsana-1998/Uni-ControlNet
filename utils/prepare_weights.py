@@ -64,6 +64,9 @@ def integrate(local_weights, global_weights, config_path, output_path):
         elif 'global_adapter' in sk:
             assert sk in global_weights.keys()
             target_dict[sk] = global_weights[sk].clone()
+        elif 'lpips_model' in sk:
+            assert sk in local_weights.keys()
+            target_dict[sk] = local_weights[sk].clone()
         else:
             print(sk,'error sk')
             raise ValueError()

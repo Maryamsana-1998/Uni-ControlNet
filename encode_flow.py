@@ -42,8 +42,8 @@ def process_images(input_folder, output_folder, max_images=20):
         process_and_save_reconstructed_image(image_path, output_path, model, device)
 
 # Specify input and output folders
-input_folder = "/data/maryam.sana/vimeo_unicontrol/Uni-ControlNet/data/UVG//Jockey"
-output_folder = "/data/maryam.sana/vimeo_unicontrol/Uni-ControlNet/data/UVG//Jockey/quality_4"
+input_folder = "/data/maryam.sana/vimeo_unicontrol/Uni-ControlNet/data/UVG/optical_flow/original/Bosphorus5"
+output_folder = "/data/maryam.sana/vimeo_unicontrol/Uni-ControlNet/data/UVG/optical_flow/decoded/Bosphorus5"
 
 # Run the script
 if __name__ == "__main__":

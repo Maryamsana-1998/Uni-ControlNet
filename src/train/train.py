@@ -62,11 +62,11 @@ def main():
     )
         
     trainer = pl.Trainer(
-        max_steps=-1,
+        max_steps=200000,
         gpus=gpus,
         callbacks=[logger, checkpoint_callback], 
         default_root_dir=default_logdir,
-        max_epochs= args.max_epochs
+        # max_epochs= args.max_epochs
     )
     trainer.fit(model,
         dataloader, 

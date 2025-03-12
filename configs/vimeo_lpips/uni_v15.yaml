@@ -16,7 +16,7 @@ model:
     scale_factor: 0.18215
     use_ema: False
     mode: uni
-    perceptual_weight: 0.1
+    perceptual_weight: 0.075
 
     local_control_config:
       target: models.local_adapter.LocalAdapter
