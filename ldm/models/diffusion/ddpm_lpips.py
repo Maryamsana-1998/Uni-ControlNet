@@ -126,8 +126,9 @@ class DDPM(pl.LightningModule):
         self.loss_type = loss_type
         self.color_weight = color_weight
         self.perceptual_weight = perceptual_weight
-        self.lpips_model = NormFixLPIPS(net='alex',lpips=True).eval()
-        self.lpips_model.to(self.device)
+        self.lpips_model = None
+        # self.lpips_model = NormFixLPIPS(net='alex',lpips=True).eval()
+        # self.lpips_model.to(self.device)
 
 
         self.learn_logvar = learn_logvar
@@ -603,8 +604,9 @@ class LatentDiffusion(DDPM):
         
         self.perceptual_weight = perceptual_weight
         self.color_weight = color_weight
-        self.lpips_model = NormFixLPIPS(net='alex',lpips=True).eval()
-        self.lpips_model.to(self.device)
+        self.lpips_model = None
+        # self.lpips_model = NormFixLPIPS(net='alex',lpips=True).eval()
+        # self.lpips_model.to(self.device)
 
         
         self.restarted_from_ckpt = False
