@@ -73,9 +73,9 @@ def main():
         print(f"\nProcessing video: {video}")
 
         # Define folders for this video
-        original_folder = os.path.join(original_root, details["path"])
-        canny_folder = os.path.join(original_root, "optical_flow", details["path"]+ '_reconstructed')
-        previous_frame_folder = os.path.join(original_root, details["path"], "quality_4")
+        original_folder = os.path.join(original_root,'images','original', details["path"])
+        canny_folder = os.path.join(original_root, "optical_flow", 'decoded',details["path"])
+        previous_frame_folder = os.path.join(original_root,'images','decoded', details["path"], "quality_4")
         pred_folder = os.path.join(pred_root, details["path"])
 
         # Retrieve image paths for inference

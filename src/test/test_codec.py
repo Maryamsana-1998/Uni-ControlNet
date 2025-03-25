@@ -10,8 +10,7 @@ import numpy as np
 import cv2
 import torch
 from pytorch_lightning import seed_everything
-from annotator.util import resize_image, HWC3
-from annotator.canny import CannyDetector
+from annotator.util import HWC3
 from models.util import create_model, load_state_dict
 from models.ddim_hacked import DDIMSampler
 import glob

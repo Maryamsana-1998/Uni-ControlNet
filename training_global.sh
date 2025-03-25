@@ -16,4 +16,4 @@ python src/train/train.py \
     ---logdir ./logs/vimeo_8/global/ \
     --checkpoint-dirpath ./checkpoints/vimeo_global/ \
     ---max-epochs 4 \
-    ---num-workers 8
+    ---num-workers 8 
