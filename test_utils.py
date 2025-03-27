@@ -5,6 +5,8 @@ import torch
 from PIL import Image
 from torchmetrics.image.fid import FrechetInceptionDistance
 import lpips
+import matplotlib.pyplot as plt
+
 
 # Initialize LPIPS and FID models
 lpips_model = lpips.LPIPS(net='alex').to('cuda' if torch.cuda.is_available() else 'cpu')
@@ -60,7 +62,7 @@ def calculate_metrics_batch(original_images, pred_images):
         "PSNR": sum(psnr_values) / len(psnr_values),
         "MS-SSIM": sum(ms_ssim_values) / len(ms_ssim_values),
         "LPIPS": sum(lpips_values) / len(lpips_values),
-        # "FID": fid_value
+         "FID": fid_value
     }
 
 

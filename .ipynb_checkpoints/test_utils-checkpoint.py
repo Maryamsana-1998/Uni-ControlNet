@@ -5,10 +5,12 @@ import torch
 from PIL import Image
 from torchmetrics.image.fid import FrechetInceptionDistance
 import lpips
+import matplotlib.pyplot as plt
+
 
 # Initialize LPIPS and FID models
 lpips_model = lpips.LPIPS(net='alex').to('cuda' if torch.cuda.is_available() else 'cpu')
-# fid_model = FrechetInceptionDistance(feature=64).to('cuda' if torch.cuda.is_available() else 'cpu')
+fid_model = FrechetInceptionDistance(feature=64).to('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Preprocessing transform
 transform = transforms.Compose([
@@ -33,7 +35,7 @@ def calculate_metrics_batch(original_images, pred_images):
         dict: Dictionary with metrics for the batch.
     """
     psnr_values, ms_ssim_values, lpips_values = [], [], []
-    # fid_model.reset()  # Clear any previous FID data
+    fid_model.reset()  # Clear any previous FID data
 
     # Loop over the image pairs
     for original_image, pred_image in zip(original_images, pred_images):
@@ -50,17 +52,17 @@ def calculate_metrics_batch(original_images, pred_images):
         lpips_values.append(lpips_value)
 
         # Add tensors to FID model
-    #     fid_model.update(original_tensor.to(torch.uint8), real=True)
-    #     fid_model.update(pred_tensor.to(torch.uint8), real=False)
+        fid_model.update(original_tensor.to(torch.uint8), real=True)
+        fid_model.update(pred_tensor.to(torch.uint8), real=False)
 
-    # # Compute FID
-    # fid_value = fid_model.compute().item()
+    # Compute FID
+    fid_value = fid_model.compute().item()
 
     return {
         "PSNR": sum(psnr_values) / len(psnr_values),
         "MS-SSIM": sum(ms_ssim_values) / len(ms_ssim_values),
         "LPIPS": sum(lpips_values) / len(lpips_values),
-        # "FID": fid_value
+         "FID": fid_value
     }
 
 
