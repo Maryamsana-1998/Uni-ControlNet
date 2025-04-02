@@ -121,22 +121,27 @@ def process(
 
     return (results, [canny_detected_map, frame_map])
 
-def get_recons_img(model,prompt, original_image, canny_image, frame_image):
+def get_recons_img(model,prompt, canny_image, frame_image):
     pred = process(model,canny_image,frame_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, strength, scale, seed, eta, global_strength)
     pred_img = pred[0][0]
-
-    # Ensure the images are of the same size
-    if original_image.shape != pred_img.shape:
-        pred_img = cv2.resize(pred_img, (original_image.shape[1], original_image.shape[0]))
-
-    # Calculate residue
-    residue = cv2.subtract(original_image, pred_img)
-
-    return pred_img, residue
+    return pred_img
 
 
 def load_images(image_paths, color_conversion=cv2.COLOR_BGR2RGB):
-    return [cv2.cvtColor(cv2.imread(path), color_conversion) for path in image_paths]
+    images = []
+    for path in image_paths:
+        try:
+            img = cv2.imread(path)
+            if img is None:
+                print(f"Warning: Failed to read image at {path}")
+                continue
+            img = cv2.cvtColor(img, color_conversion)
+            images.append(img)
+        except Exception as e:
+            print(f"Error processing {path}: {e}")
+
+    return images
+
 
 def process_images(config_path, ckpt_path, image_paths, canny_paths, prompt, previous_frames_paths, pred_folder, num_images=15):
     """
@@ -165,30 +170,28 @@ def process_images(config_path, ckpt_path, image_paths, canny_paths, prompt, pre
     os.makedirs(pred_folder, exist_ok=True)
 
     # Load original images, Canny images, and previous frame images
-    original_images = load_images(image_paths)
-    canny_images = load_images(canny_paths)
-    previous_frames = load_images(previous_frames_paths)
-
+    original_images = load_images(image_paths[0:num_images])
+    canny_images = load_images(canny_paths[0:num_images])
+    previous_frames = load_images(previous_frames_paths[0:num_images])
     predictions = []
 
     # Process each image up to the specified number
-    for i in range(1, num_images):
+    for i in range(1, num_images-1):
         # Get prediction and residue
-        original_image = original_images[i]
+        print('canny img',len(canny_images), len(previous_frames))
         canny_image = canny_images[i]
         frame_image = previous_frames[i - 1]
-
-        pred_image, _ = get_recons_img(
+ 
+        pred_image = get_recons_img(
             model,
             prompt=prompt,
-            original_image=original_image,
             canny_image=canny_image,
             frame_image=frame_image
         )
         predictions.append(pred_image)
 
         # Save prediction image
-        pred_image_path = os.path.join(pred_folder, f"im{i + 1}_pred.png")
+        pred_image_path = os.path.join(pred_folder, f"im{i + 1:5d}_pred.png")
         cv2.imwrite(pred_image_path, cv2.cvtColor(pred_image, cv2.COLOR_RGB2BGR))
 
         print(f"Saved prediction image: {pred_image_path}")
