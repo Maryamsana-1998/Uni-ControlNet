@@ -4,12 +4,8 @@ slurm_logs/*
 checkpoints/*
 *.pyc
 logs/*
-predictions
 annotator/ckpts/
-experiment_*
-exp/
+experiments/*/*
 test_codec/*
-exp_perco_*
-exp_color_*
 data/*
 *.pt
