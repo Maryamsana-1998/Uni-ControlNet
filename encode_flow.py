@@ -25,7 +25,7 @@ def process_and_save_reconstructed_image(image_path, output_path, model, device)
     print(f"Reconstructed image saved at {output_path}")
 
 # Main script
-def process_images(input_folder, output_folder, max_images=20):
+def process_images(input_folder, output_folder, max_images=100):
     # Load the pre-trained model (quality 4)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = mbt2018(quality=4, pretrained=True).eval().to(device)
@@ -42,8 +42,8 @@ def process_images(input_folder, output_folder, max_images=20):
         process_and_save_reconstructed_image(image_path, output_path, model, device)
 
 # Specify input and output folders
-input_folder = "/data/maryam.sana/vimeo_unicontrol/Uni-ControlNet/data/UVG/optical_flow/original/Bosphorus5"
-output_folder = "/data/maryam.sana/vimeo_unicontrol/Uni-ControlNet/data/UVG/optical_flow/decoded/Bosphorus5"
+input_folder = "./test_codec/Jockey/original"
+output_folder = "./data/UVG/images/decoded/Jockey/quality_4"
 
 # Run the script
 if __name__ == "__main__":

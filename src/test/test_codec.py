@@ -191,7 +191,7 @@ def process_images(config_path, ckpt_path, image_paths, canny_paths, prompt, pre
         predictions.append(pred_image)
 
         # Save prediction image
-        pred_image_path = os.path.join(pred_folder, f"im{i + 1:5d}_pred.png")
+        pred_image_path = os.path.join(pred_folder, f"im{(i + 1):05d}_pred.png")
         cv2.imwrite(pred_image_path, cv2.cvtColor(pred_image, cv2.COLOR_RGB2BGR))
 
         print(f"Saved prediction image: {pred_image_path}")

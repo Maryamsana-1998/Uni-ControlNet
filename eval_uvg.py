@@ -17,15 +17,15 @@ from models.ddim_hacked import DDIMSampler
 # Video-specific prompts
 video_details = {
     "Beauty": {
-        "prompt": "A beautiful blonde girl with pink lipstick with black background",
+        "prompt": "A beautiful blonde girl smiling with pink lipstick with black background",
         "path": "Beauty"
     },
     "Jockey": {
-        "prompt": "The image features a man riding a brown horse, galloping through a grassy field. The man is wearing a yellow shirt and is skillfully guiding the horse.",
+        "prompt": "A  man riding a brown horse, galloping through a green race track. The man is wearing a yellow and red shirt and also a yellow hat",
         "path": "Jockey"
     },
     "Bosphorus": {
-        "prompt": "The image features a man and a woman sitting together on a boat in the water. They are both wearing ties, suggesting a formal or semi-formal occasion.",
+        "prompt": "A man and a woman sitting together on a boat sailing in water. They are both wearing ties. There is also a red flag at end of boat",
         "path": "Bosphorus"
     }
 }
@@ -74,20 +74,18 @@ def main():
 
         # Define folders for this video
         original_folder = os.path.join(original_root,'images','original', details["path"])
-        canny_folder = os.path.join(original_root, "optical_flow", 'decoded',details["path"])
+        canny_folder = os.path.join(original_root, "optical_flow", 'original',details["path"])
         previous_frame_folder = os.path.join(original_root,'images','decoded', details["path"], "quality_4")
         pred_folder = os.path.join(pred_root, details["path"])
 
-        # Retrieve image paths for inference
         image_paths = sorted(glob.glob(os.path.join(original_folder, "*.png")))
         canny_paths = sorted(glob.glob(os.path.join(canny_folder, "*.png")))
         previous_frames_paths = sorted(glob.glob(os.path.join(previous_frame_folder, "*.png")))
-
         # Retrieve the prompt for this video
         prompt = details["prompt"]
 
         # Number of images to process
-        num_images = 15
+        num_images = 60
 
         # Ensure prediction directory exists
         os.makedirs(pred_folder, exist_ok=True)
@@ -113,8 +111,8 @@ def main():
                 original_images=original_images,
                 predictions=predictions,
                 save_location=plot_save_location,
-                start_index=2,
-                end_index=7,
+                start_index=10,
+                end_index=18,
                 dpi=300
             )
 
@@ -122,9 +120,9 @@ def main():
         original_eval_images = []
         pred_eval_images = []
 
-        for i in range(2, 15):
+        for i in range(2, num_images):
             original_path = os.path.join(original_root, details["path"], f"im{i:05d}.png")
-            pred_path = os.path.join(pred_root, details["path"], f"im{i}_pred.png")
+            pred_path = os.path.join(pred_root, details["path"], f"im{i:05d}_pred.png")
 
             if os.path.exists(original_path) and os.path.exists(pred_path):
                 original_eval_images.append(Image.open(original_path).convert("RGB"))
