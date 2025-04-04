@@ -2,44 +2,52 @@ import os
 import random
 import cv2
 import numpy as np
-
+import glob
 from torch.utils.data import Dataset
+from pathlib import Path
 
 from .util import *
-
 
 class UniDataset(Dataset):
     def __init__(self,
                  anno_path,
-                 image_dir,
-                 condition_root,
+                 root_dir,
                  local_type_list,
-                 global_type_list,
                  resolution,
                  drop_txt_prob,
+                 global_type_list,
                  keep_all_cond_prob,
                  drop_all_cond_prob,
                  drop_each_cond_prob):
+     
+     self.local_type_list = local_type_list
+     self.global_type_list = global_type_list
+     self.resolution = resolution
+     self.drop_txt_prob = drop_txt_prob
+     self.keep_all_cond_prob = keep_all_cond_prob
+     self.drop_all_cond_prob = drop_all_cond_prob
+     self.drop_each_cond_prob = drop_each_cond_prob
+
+     self.sequences = glob.glob(root_dir+'/*/*')
+     self.file_ids, self.annos = read_anno(anno_path)
+
+     self.video_frames = []
+     for video_dir in self.sequences:
+        frames = sorted([
+                os.path.join(video_dir, f)
+                for f in os.listdir(video_dir)
+                if f.endswith(('.jpg', '.png')) and f not in ['r1.png','r2.png']
+            ])
+        self.video_frames.extend(frames)
+
+    def __len__(self):
+        return len(self.video_frames)
         
-        file_ids, self.annos = read_anno(anno_path)
-        self.image_paths = [os.path.join(image_dir, file_id + '.png') for file_id in file_ids]
-        self.local_paths = {}
-        for local_type in local_type_list:
-            self.local_paths[local_type] = [os.path.join(condition_root, local_type, file_id + '.png') for file_id in file_ids]
-        self.global_paths = {}
-        for global_type in global_type_list:
-            self.global_paths[global_type] = [os.path.join(condition_root, global_type, file_id + '.npy') for file_id in file_ids]
-        
-        self.local_type_list = local_type_list
-        self.global_type_list = global_type_list
-        self.resolution = resolution
-        self.drop_txt_prob = drop_txt_prob
-        self.keep_all_cond_prob = keep_all_cond_prob
-        self.drop_all_cond_prob = drop_all_cond_prob
-        self.drop_each_cond_prob = drop_each_cond_prob
-    
     def __getitem__(self, index):
-        image = cv2.imread(self.image_paths[index])
+        img_path = Path(self.video_frames[index])
+        image = cv2.imread(img_path)
+        anno = self.annos[img_path.name]
+        
         try:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             image = cv2.resize(image, (self.resolution, self.resolution))
@@ -47,15 +55,21 @@ class UniDataset(Dataset):
 
         except:
             print(self.image_paths[index])
-        
-        anno = self.annos[index]
-        local_files = []
-        
-        for local_type in self.local_type_list:
-            local_files.append(self.local_paths[local_type][index])
+
         global_files = []
         for global_type in self.global_type_list:
             global_files.append(self.global_paths[global_type][index])
+
+        local_files = []
+        for local_type in self.local_type_list:
+           if local_type =='r1':  
+              local_files.append(img_path.with_name('r1.png'))
+           if local_type == 'r2':
+              local_files.append(img_path.with_name('r2.png'))
+           if local_type == 'depth':
+              local_files.append(img_path.parent / 'depth' / img_path.name)
+           if local_type == 'flow':
+              local_files.append(img_path.parent / 'Flow' / img_path.name)
 
         local_conditions = []
         for local_file in local_files: 
@@ -75,15 +89,14 @@ class UniDataset(Dataset):
 
         if random.random() < self.drop_txt_prob:
             anno = ''
+        
         local_conditions = keep_and_drop(local_conditions, self.keep_all_cond_prob, self.drop_all_cond_prob, self.drop_each_cond_prob)
         global_conditions = keep_and_drop(global_conditions, self.keep_all_cond_prob, self.drop_all_cond_prob, self.drop_each_cond_prob)
+        
         if len(local_conditions) != 0:
             local_conditions = np.concatenate(local_conditions, axis=2)
         if len(global_conditions) != 0:
             global_conditions = np.concatenate(global_conditions)
 
         return dict(jpg=image, txt=anno, local_conditions=local_conditions, global_conditions=global_conditions)
-        
-    def __len__(self):
-        return len(self.annos)
-        
+           
