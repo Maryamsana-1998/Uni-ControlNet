@@ -56,10 +56,10 @@ def process(
 
         canny_image = cv2.resize(canny_image, (W, H))
         canny_detected_map = HWC3(canny_image)
-        print(canny_detected_map.shape)
+        # print(canny_detected_map.shape)
 
         frame_map =  cv2.resize(HWC3(frame_image), (W, H))
-        print(frame_map.shape)
+        # print(frame_map.shape)
 
         content_emb = np.zeros((768))
 
@@ -143,7 +143,7 @@ def load_images(image_paths, color_conversion=cv2.COLOR_BGR2RGB):
     return images
 
 
-def process_images(config_path, ckpt_path, image_paths, canny_paths, prompt, previous_frames_paths, pred_folder, num_images=15):
+def process_images(config_path, ckpt_path, image_paths, canny_paths, prompt, previous_frames_paths, pred_folder, gop=6):
     """
     Processes a given set of images, generates predictions, and calculates residues.
 
@@ -170,24 +170,37 @@ def process_images(config_path, ckpt_path, image_paths, canny_paths, prompt, pre
     os.makedirs(pred_folder, exist_ok=True)
 
     # Load original images, Canny images, and previous frame images
-    original_images = load_images(image_paths[0:num_images])
-    canny_images = load_images(canny_paths[0:num_images])
-    previous_frames = load_images(previous_frames_paths[0:num_images])
+    original_images = load_images(image_paths)
+    canny_images = load_images(canny_paths)
+    previous_frames_paths_gop = [previous_frames_paths[i // gop] for i in range(len(image_paths))]
+    previous_frames = load_images(previous_frames_paths_gop)
     predictions = []
 
+    total_frames = len(image_paths)
+
+    all_indices = list(range(total_frames))
+    intra_indices = list(range(0, total_frames, gop))
+    inter_indices = [i for i in all_indices if i not in intra_indices]
+
     # Process each image up to the specified number
-    for i in range(1, num_images-1):
-        # Get prediction and residue
-        print('canny img',len(canny_images), len(previous_frames))
-        canny_image = canny_images[i]
-        frame_image = previous_frames[i - 1]
- 
-        pred_image = get_recons_img(
-            model,
-            prompt=prompt,
-            canny_image=canny_image,
-            frame_image=frame_image
-        )
+    for i in range(0, len(original_images)):
+
+        if i % gop == 0: 
+            print('Intra Coded: ', previous_frames_paths_gop[i])
+            pred_image = previous_frames[i]
+
+        else:
+            print('Inter Coded with :', canny_paths[inter_indices.index(i)] ,previous_frames_paths_gop[i] )
+            canny_image = canny_images[inter_indices.index(i)]
+            frame_image = previous_frames[i]
+    
+            pred_image = get_recons_img(
+                model,
+                prompt=prompt,
+                canny_image=canny_image,
+                frame_image=frame_image
+            )
+
         predictions.append(pred_image)
 
         # Save prediction image
@@ -197,4 +210,4 @@ def process_images(config_path, ckpt_path, image_paths, canny_paths, prompt, pre
         print(f"Saved prediction image: {pred_image_path}")
 
     # Return the original and predicted images
-    return original_images[:num_images], predictions
+    return original_images, predictions
