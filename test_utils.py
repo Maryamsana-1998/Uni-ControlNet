@@ -46,7 +46,12 @@ def calculate_metrics_batch(original_images, pred_images):
         pred_tensor = transform(pred_image).unsqueeze(0).to('cuda' if torch.cuda.is_available() else 'cpu')
         
         # Calculate PSNR and MS-SSIM
-        psnr_values.append(psnr(original_tensor, pred_tensor).item())
+        psnr_value = psnr(original_tensor, pred_tensor).item()
+        print(psnr_value)
+        if psnr_value > 1000:
+            continue
+        else:
+            psnr_values.append(psnr_value)
         ms_ssim_values.append(ms_ssim(original_tensor, pred_tensor, data_range=255, size_average=True).item())
 
         # Calculate LPIPS
