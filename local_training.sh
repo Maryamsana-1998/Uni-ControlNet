@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --time=6-0
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:6
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=29G
 #SBATCH -p batch_grad
@@ -21,8 +21,8 @@ PRED_DIR="${EXPERIMENT_DIR}/preds"
 mkdir -p ${EXPERIMENT_DIR} ${LOCAL_CKPT_DIR} ${LOGS_DIR}
 
 # Training parameters
-CONFIG_PATH="./configs/local_v15_r1_op_r2_d.yaml"
-INIT_CKPT="./ckpt/local_temp.ckpt"
+CONFIG_PATH="./configs/local_v15_r1_op_r2.yaml"
+INIT_CKPT="./ckpt/local_temp2.ckpt"
 NUM_GPUS=6
 BATCH_SIZE=4
 NUM_WORKERS=12
@@ -51,34 +51,31 @@ EOF
 
 echo "Hyperparameters JSON saved at ${HYPERPARAM_FILE}"
 
-
-python check.py
-
 # Run Training
-# python src/train/train_sub.py \
-#     --config-path ${CONFIG_PATH} \
-#     ---resume-path ${INIT_CKPT} \
-#     ---gpus ${NUM_GPUS} \
-#     ---batch-size ${BATCH_SIZE} \
-#     ---logdir ${LOGS_DIR} \
-#     --checkpoint-dirpath ${LOCAL_CKPT_DIR} \
-#     ---max-epochs ${MAX_EPOCHS} \
-#     ---num-workers ${NUM_WORKERS}
+python src/train/train_sub.py \
+    --config-path ${CONFIG_PATH} \
+    ---resume-path ${INIT_CKPT} \
+    ---gpus ${NUM_GPUS} \
+    ---batch-size ${BATCH_SIZE} \
+    ---logdir ${LOGS_DIR} \
+    --checkpoint-dirpath ${LOCAL_CKPT_DIR} \
+    ---max-epochs ${MAX_EPOCHS} \
+    ---num-workers ${NUM_WORKERS}
 
-# # After training, prepare uni weights
-# LOCAL_BEST="${LOCAL_CKPT_DIR}/local-best-checkpoint.ckpt"
-# UNI_CKPT="${EXPERIMENT_DIR}/uni.ckpt"
-# UNI_CONFIG="configs/uni_v15.yaml"
+# After training, prepare uni weights
+LOCAL_BEST="${LOCAL_CKPT_DIR}/local-best-checkpoint.ckpt"
+UNI_CKPT="${EXPERIMENT_DIR}/uni.ckpt"
+UNI_CONFIG="configs/uni_v15.yaml"
 
-# python utils/prepare_weights.py integrate \
-#        ${LOCAL_BEST} ckpt/init_global_temp.ckpt  \
-#        ${UNI_CONFIG} ${UNI_CKPT} 
+python utils/prepare_weights.py integrate \
+       ${LOCAL_BEST} ckpt/init_global_temp.ckpt  \
+       ${UNI_CONFIG} ${UNI_CKPT} 
 
-# echo "Unified weights prepared and stored at ${UNI_CKPT}."
-# echo "Experiment finished successfully."
+echo "Unified weights prepared and stored at ${UNI_CKPT}."
+echo "Experiment finished successfully."
 
-# python eval_uvg.py --original_root data/UVG_test_data \
-#                    --pred_root ${PRED_DIR}  \
-#                    --config ${UNI_CONFIG} \
-#                    --ckpt ${UNI_CKPT}
+python eval_uvg.py --original_root data/UVG_test_data \
+                   --pred_root ${PRED_DIR}  \
+                   --config ${UNI_CONFIG} \
+                   --ckpt ${UNI_CKPT}
 
