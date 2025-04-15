@@ -45,16 +45,20 @@ class UniDataset(Dataset):
         
     def __getitem__(self, index):
         img_path = Path(self.video_frames[index])
-        image = cv2.imread(img_path)
-        anno = self.annos[img_path.name]
+        parts = os.path.normpath(img_path).split(os.sep)
+        sequence_id = f"{parts[-3]}_{parts[-2]}"
+        idx = self.file_ids.index(sequence_id)
+        anno = self.annos[idx]
         
         try:
+            image = cv2.imread(str(img_path))
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             image = cv2.resize(image, (self.resolution, self.resolution))
             image = (image.astype(np.float32) / 127.5) - 1.0
 
-        except:
-            print(self.image_paths[index])
+        except Exception as e:
+            print('error: ',e,img_path)
+            raise e  
 
         global_files = []
         for global_type in self.global_type_list:
@@ -67,20 +71,24 @@ class UniDataset(Dataset):
            if local_type == 'r2':
               local_files.append(img_path.with_name('r2.png'))
            if local_type == 'depth':
-              local_files.append(img_path.parent / 'depth' / img_path.name)
+              new_path = img_path.parent / 'depth' / img_path.name.replace('.png', '_depth.png')
+              local_files.append(new_path)
            if local_type == 'flow':
               local_files.append(img_path.parent / 'Flow' / img_path.name)
+        # print(local_files)
 
         local_conditions = []
         for local_file in local_files: 
-            condition = cv2.imread(local_file)
+            # print(local_file)
+            condition = cv2.imread(str(local_file))
             try:    
                 condition = cv2.cvtColor(condition, cv2.COLOR_BGR2RGB)
                 condition = cv2.resize(condition, (self.resolution, self.resolution))
                 condition = condition.astype(np.float32) / 255.0
                 local_conditions.append(condition)
-            except:
-                print(local_file)
+            except Exception as e:
+                print('missing', e,  local_file)
+                raise e
 
         global_conditions = []
         for global_file in global_files:
