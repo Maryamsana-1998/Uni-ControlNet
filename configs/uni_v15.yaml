@@ -23,7 +23,7 @@ model:
       params:
         in_channels: 4
         model_channels: 320
-        local_channels: 6
+        local_channels: 12
         inject_channels: [192, 256, 384, 512]
         inject_layers: [1, 4, 7, 10]
         num_res_blocks: 2

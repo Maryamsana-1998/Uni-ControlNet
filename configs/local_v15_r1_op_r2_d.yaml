@@ -23,7 +23,7 @@ model:
       params:
         in_channels: 4
         model_channels: 320
-        local_channels: 6
+        local_channels: 12
         inject_channels: [192, 256, 384, 512]
         inject_layers: [1, 4, 7, 10]
         num_res_blocks: 2
@@ -82,8 +82,8 @@ model:
 data:
   target: src.train.video_dataset.UniDataset
   params:
-    anno_path: /data2/local_datasets/vimeo_all/updated_annotations.txt
-    root_dir: /data2/local_datasets/vimeo_all/images
+    anno_path: /data/maryam.sana/Uni-ControlNet/data/captions.txt
+    root_dir: /data2/local_datasets/vimeo_septuplet/sequences/
     local_type_list: [r1,r2,flow,depth]
     global_type_list: []
     resolution: 512
